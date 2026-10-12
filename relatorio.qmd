@@ -114,6 +114,7 @@ As variáveis estão agrupadas por tema. Os mesmos grupos são usados adiante, p
 | Trabalho | `VD4012` | Contribuição para a previdência em qualquer trabalho | 1 Contribuinte; 2 Não contribuinte |
 | Trabalho | `VD4010` | Grupamento de atividade do trabalho principal | 12 grupamentos (ex.: 9 Educação, saúde humana e serviços sociais; 11 Serviços domésticos) |
 | Trabalho | `VD4011` | Grupamento ocupacional do trabalho principal | 11 grupamentos (ex.: 1 Diretores e gerentes; 2 Profissionais das ciências e intelectuais) |
+| Trabalho | `V4010` | Código da ocupação (cargo ou função) no trabalho principal, pela Classificação de Ocupações para Pesquisas Domiciliares (COD) | 4 dígitos; os 2 primeiros indicam o subgrupo (11 a 14 = diretores e gerentes) |
 | Trabalho | `VD4019` | Rendimento mensal habitual de todos os trabalhos | Valor em R$ |
 | Trabalho | `VD4031` | Horas habitualmente trabalhadas por semana em todos os trabalhos | 1 a 120 horas |
 | Rendimento | `VD5008` | Rendimento domiciliar per capita: habitual de todos os trabalhos e efetivo de outras fontes (exclui pensionistas, empregados domésticos e seus parentes) | Valor em R$ |
@@ -149,8 +150,8 @@ vars_educacao <- c('V3002', 'VD3004', 'VD3005')
 # Trabalho e rendimento
 vars_trabalho <- c(
   'VD4001', 'VD4002', 'VD4009', 'V4019', 'VD4012',
-  'VD4010', 'VD4011', 'VD4019', 'VD4031',
-  'VD5008'  # rendimento domiciliar per capita
+  'VD4010', 'VD4011', 'V4010', 'VD4019', 'VD4031',
+  'VD5008' # rendimento domiciliar per capita
 )
 
 # Outras formas de trabalho (módulo da 5ª visita)
@@ -318,7 +319,8 @@ pnadc |>
 # Tipos das colunas: sem essa definição, o readr adivinha e erra nos dois
 # sentidos (identificadores viram número; códigos com zero à esquerda viram texto)
 vars_texto <- c(
-  'UPA', 'Estrato', 'ID_DOMICILIO', 'V1008', 'V1014', 'posest', 'posest_sxi'
+  'UPA', 'Estrato', 'ID_DOMICILIO', 'V1008', 'V1014', 'posest', 'posest_sxi',
+  'V4010' # código da ocupação: os dígitos têm significado, não é uma quantidade
 )
 vars_decimais <- c('V1030', 'V1031', 'V1032', 'V1034', 'VD4019', 'VD5008')
 
@@ -504,6 +506,33 @@ pnadc <- pnadc |>
   )
 ```
 
+### Setor de atividade e cargos gerenciais
+
+Duas classificações do trabalho principal das pessoas ocupadas:
+
+- **Setor de atividade** (CMIG 1.8): os 12 grupamentos de `VD4010` reunidos em agropecuária, indústria (que inclui a construção) e serviços. As atividades mal definidas ficam sem setor.
+- **Cargo gerencial** (CMIG 4.3): os subgrupos 11, 12 e 13 da classificação de ocupações, que reúnem dirigentes e gerentes de nível sênior e intermediário. O subgrupo 14 (gerentes de hotéis, restaurantes, comércio e outros serviços) fica de fora. É a definição que mais se aproxima do informativo: 39,5% de mulheres, contra 39,3% publicados. Com todo o grande grupo 1 (`VD4011 == 1`), o resultado seria 40,7%.
+
+```{r}
+#| label: setor-cargo
+pnadc <- pnadc |>
+  mutate(
+    setor = case_when(
+      VD4010 == 1 ~ 'Agropecuária',
+      VD4010 %in% 2:3 ~ 'Indústria',
+      VD4010 %in% 4:11 ~ 'Serviços'
+    ) |>
+      factor(levels = c('Agropecuária', 'Indústria', 'Serviços')),
+
+    # Os dois primeiros dígitos do código da ocupação indicam o subgrupo
+    cargo_gerencial = case_when(
+      condicao_atividade != 'Ocupada' ~ NA, # só se aplica a ocupados
+      str_sub(V4010, 1, 2) %in% c('11', '12', '13') ~ TRUE,
+      .default = FALSE
+    )
+  )
+```
+
 ### Das variáveis aos indicadores
 
 Cada indicador do curso é uma razão entre um numerador e um denominador, calculados com as variáveis originais e as derivadas acima. Os blocos 5 a 7 calculam esses indicadores; a tabela mostra de onde cada um sai.
@@ -511,19 +540,26 @@ Cada indicador do curso é uma razão entre um numerador e um denominador, calcu
 | Indicador (CMIG) | Tipo | Numerador | Denominador | Variáveis |
 |---|---|---|---|---|
 | **Trabalho** | | | | |
-| Taxa de participação na força de trabalho (1.8) | Taxa | Pessoas na força de trabalho (ocupadas + desocupadas) | Pessoas de 14 anos ou mais | `condicao_atividade` |
+| Taxa de participação na força de trabalho (1.3) | Taxa | Pessoas de 15 anos ou mais na força de trabalho (ocupadas + desocupadas) | Pessoas de 15 anos ou mais | `condicao_atividade`, `V2009` |
 | Nível de ocupação | Taxa | Pessoas ocupadas | Pessoas de 14 anos ou mais | `condicao_atividade` |
 | Nível de ocupação com e sem criança de até 6 anos (1.15) | Taxa | Pessoas ocupadas de 25 a 54 anos | Pessoas de 25 a 54 anos, com e sem criança no domicílio | `condicao_atividade`, `V2009`, `crianca_ate_6` |
 | Taxa de desocupação (1.10) | Taxa | Pessoas desocupadas | Pessoas na força de trabalho | `condicao_atividade` |
 | Informalidade (1.9) | Proporção | Ocupados informais em atividades não agrícolas | Ocupados em atividades não agrícolas | `informal`, `atividade_agricola` |
 | Ocupação em tempo parcial (1.14) | Proporção | Ocupados com até 30 horas habituais por semana | Pessoas ocupadas | `VD4031`, `condicao_atividade` |
-| Mulheres em cargos gerenciais (5.3) | Proporção | Mulheres em cargos de direção e gerência | Todas as pessoas em cargos de direção e gerência | `VD4011` (1), `sexo` |
+| Posição na ocupação: conta própria (1.4), trabalhador familiar auxiliar (1.5) e empregador (1.6) | Proporção | Ocupados em cada posição | Pessoas ocupadas | `VD4009` (9, 10 e 8), `condicao_atividade` |
+| Ocupados por setor de atividade (1.8) | Distribuição | Ocupados em cada setor | Ocupados com setor definido | `setor` |
+| Mulheres em cargos gerenciais (4.3) | Proporção | Mulheres em cargos gerenciais | Todas as pessoas em cargos gerenciais | `cargo_gerencial`, `sexo` |
+| Mulheres entre os trabalhadores domésticos | Proporção | Mulheres no trabalho doméstico remunerado | Todas as pessoas no trabalho doméstico remunerado | `VD4009` (3 e 4), `sexo` |
+| Carga total de trabalho (1.2) | Média | Soma das horas habituais de trabalho e das horas de cuidados e afazeres | Ocupados que realizaram cuidados ou afazeres | `VD4031`, `V4121B`, `condicao_atividade` |
 | **Rendimento** | | | | |
 | Rendimento médio habitual de todos os trabalhos | Média | Soma dos rendimentos | Ocupados com rendimento | `VD4019` |
 | Razão de rendimento mulheres/homens (1.13) | Razão | Rendimento médio das mulheres | Rendimento médio dos homens | `VD4019`, `sexo`, `VD4011` (por grupo ocupacional) |
 | **Educação** | | | | |
 | Nível de instrução da população de 25 anos ou mais (2.11) | Distribuição | Pessoas em cada grupo de escolaridade | Pessoas de 25 anos ou mais | `escolaridade` |
 | Frequência escolar bruta de 15 a 17 anos (2.3) | Taxa | Pessoas de 15 a 17 anos que frequentam escola | Pessoas de 15 a 17 anos | `V3002`, `V2009` |
+| Frequência escolar bruta de 18 a 24 anos (2.4) | Taxa | Pessoas de 18 a 24 anos que frequentam escola | Pessoas de 18 a 24 anos | `V3002`, `V2009` |
+| Taxa de conclusão do ensino fundamental (2.6) | Taxa | Pessoas de 17 a 19 anos com fundamental completo ou mais | Pessoas de 17 a 19 anos | `VD3004` (3 ou mais), `V2009` |
+| Taxa de conclusão do ensino médio | Taxa | Pessoas de 20 a 22 anos com médio completo ou mais | Pessoas de 20 a 22 anos | `VD3004` (5 ou mais), `V2009` |
 | Jovens que não estudam nem estão ocupados (1.7) | Proporção | Pessoas de 15 a 24 anos não ocupadas e que não frequentam escola | Pessoas de 15 a 24 anos | `condicao_atividade`, `V3002`, `V2009` |
 | **Cuidados e afazeres domésticos** | | | | |
 | Horas semanais em cuidados e afazeres (1.1) | Média | Soma das horas dedicadas | Pessoas de 14 anos ou mais que realizaram cuidados ou afazeres | `V4121B` |
@@ -533,7 +569,10 @@ Cada indicador do curso é uma razão entre um numerador e um denominador, calcu
 : Todos os indicadores podem ser desagregados por `cor_raca`, `faixa_etaria`, `regiao`, `territorio` e `situacao`, sempre cruzando com `sexo`.
 
 ::: {.callout-note}
-## Três cuidados na leitura da tabela
+## Cuidados na leitura da tabela
+- **Idade na taxa de participação:** o CMIG usa 15 anos ou mais, e é assim que o informativo calcula. As divulgações regulares da PNAD Contínua usam 14 anos ou mais, a idade de trabalhar adotada pelo IBGE. Por isso o nível de ocupação e a taxa de desocupação aparecem aqui com 14 anos ou mais.
+- **Carga total de trabalho:** calculada com as horas habituais de trabalho. É uma aproximação: o resultado de 2022 fica em 52,6 horas para os homens e 55,0 para as mulheres, contra 52,1 e 54,4 no informativo, cuja definição exata não foi identificada.
+- **Indicadores de educação:** o informativo usa o 2º trimestre, que tem o módulo ampliado de educação. Com a 5ª visita, os resultados ficam próximos, mas não idênticos.
 - **Horas em cuidados e afazeres:** o denominador é quem realizou as atividades, e não toda a população de 14 anos ou mais. A pergunta das horas (`V4121B`) só é feita a quem respondeu "sim" a alguma delas.
 - **Jovens que não estudam nem estão ocupados:** o informativo também exclui quem estava em curso de qualificação profissional, informação que não está na base do curso. Por isso, o resultado aqui fica um pouco acima do publicado.
 - **Taxas de realização de afazeres e de cuidados:** não estão no informativo, mas complementam a média de horas: mostram quantas pessoas realizam as atividades, e não só quanto tempo dedicam.

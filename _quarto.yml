@@ -11,8 +11,8 @@ execute:
 website:
   title: "Gênero e PNAD Contínua em R"
   description: "Minicurso sobre indicadores de desigualdade de gênero com os microdados da PNAD Contínua em R."
-  site-url: "https://lincolntsilva.github.io/minicurso-genero-pnadc/"
-  repo-url: "https://github.com/LincolnTSilva/minicurso-genero-pnadc"
+  site-url: "https://lincolntsilva.github.io/desigualdade-genero-pnadc/"
+  repo-url: "https://github.com/LincolnTSilva/desigualdade-genero-pnadc"
   search: true
   page-navigation: true
   back-to-top-navigation: true
@@ -41,7 +41,7 @@ website:
         text: Sobre
     right:
       - icon: github
-        href: https://github.com/LincolnTSilva/minicurso-genero-pnadc
+        href: https://github.com/LincolnTSilva/desigualdade-genero-pnadc
         aria-label: Repositório no GitHub
 
   page-footer:
