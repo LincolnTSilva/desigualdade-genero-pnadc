@@ -1074,8 +1074,56 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Duas classificações do trabalho principal das pessoas ocupadas:</p>
 <ul>
 <li><strong>Setor de atividade</strong> (CMIG 1.8): os 12 grupamentos de <code>VD4010</code> reunidos em agropecuária, indústria (que inclui a construção) e serviços. As atividades mal definidas ficam sem setor.</li>
-<li><strong>Cargo gerencial</strong> (CMIG 4.3): os subgrupos 11, 12 e 13 da classificação de ocupações, que reúnem dirigentes e gerentes de nível sênior e intermediário. O subgrupo 14 (gerentes de hotéis, restaurantes, comércio e outros serviços) fica de fora. É a definição que mais se aproxima do informativo: 39,5% de mulheres, contra 39,3% publicados. Com todo o grande grupo 1 (<code>VD4011 == 1</code>), o resultado seria 40,7%.</li>
+<li><strong>Cargo gerencial</strong> (CMIG 4.3): as ocupações de gerência sênior e intermediária, identificadas pelos dois primeiros dígitos do código da ocupação (<code>V4010</code>).</li>
 </ul>
+<section id="por-que-só-parte-dos-diretores-e-gerentes" class="level4">
+<h4 class="anchored" data-anchor-id="por-que-só-parte-dos-diretores-e-gerentes">Por que só parte dos diretores e gerentes</h4>
+<p>O CMIG 4.3, que corresponde ao indicador 5.5.2 dos Objetivos de Desenvolvimento Sustentável, mede a presença de mulheres em posições de decisão. A Organização Internacional do Trabalho define essas posições pela Classificação Internacional Uniforme de Ocupações (CIUO-08, ou ISCO-08 em inglês). A classificação usada na PNAD Contínua, a COD, segue a mesma estrutura, de modo que os códigos são comparáveis.</p>
+<p>O grande grupo 1 dessa classificação, “Diretores e gerentes”, tem quatro subgrupos:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Subgrupo</th>
+<th>ISCO-08</th>
+<th>COD</th>
+<th>Nível de gerência</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>11</td>
+<td>Chief executives, senior officials and legislators</td>
+<td>Diretores executivos, dirigentes da administração pública e membros do poder executivo e legislativo</td>
+<td>Sênior e intermediária</td>
+</tr>
+<tr class="even">
+<td>12</td>
+<td>Administrative and commercial managers</td>
+<td>Dirigentes administrativos e comerciais</td>
+<td>Sênior e intermediária</td>
+</tr>
+<tr class="odd">
+<td>13</td>
+<td>Production and specialized services managers</td>
+<td>Dirigentes e gerentes de produção e operação</td>
+<td>Sênior e intermediária</td>
+</tr>
+<tr class="even">
+<td>14</td>
+<td>Hospitality, retail and other services managers</td>
+<td>Gerentes de hotéis, restaurantes, comércio e outros serviços</td>
+<td>Júnior</td>
+</tr>
+</tbody>
+</table>
+<p>O indicador considera os subgrupos <strong>11, 12 e 13</strong>, que reúnem a gerência sênior e intermediária: quem dirige organizações, define políticas e coordena áreas inteiras. O subgrupo <strong>14</strong> fica de fora porque é classificado como gerência júnior: reúne gerentes de estabelecimentos pequenos, como lojas, restaurantes e pousadas, que em geral acumulam a gerência com a operação do dia a dia e têm autonomia de decisão mais limitada.</p>
+<p>A distinção importa para a análise de gênero. Como as mulheres estão mais presentes na gerência de comércio e serviços, incluir o subgrupo 14 aumentaria a participação feminina medida, sem que isso refletisse maior acesso aos postos onde as decisões de maior alcance são tomadas.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>pnadc <span class="ot">&lt;-</span> pnadc <span class="sc">|&gt;</span></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
@@ -1094,6 +1142,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>    )</span>
 <span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+</section>
 </section>
 <section id="das-variáveis-aos-indicadores" class="level3">
 <h3 class="anchored" data-anchor-id="das-variáveis-aos-indicadores">Das variáveis aos indicadores</h3>
@@ -2385,182 +2434,199 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb31-535"><a href="#cb31-535" aria-hidden="true" tabindex="-1"></a>Duas classificações do trabalho principal das pessoas ocupadas:</span>
 <span id="cb31-536"><a href="#cb31-536" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb31-537"><a href="#cb31-537" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Setor de atividade** (CMIG 1.8): os 12 grupamentos de <span class="in">`VD4010`</span> reunidos em agropecuária, indústria (que inclui a construção) e serviços. As atividades mal definidas ficam sem setor.</span>
-<span id="cb31-538"><a href="#cb31-538" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Cargo gerencial** (CMIG 4.3): os subgrupos 11, 12 e 13 da classificação de ocupações, que reúnem dirigentes e gerentes de nível sênior e intermediário. O subgrupo 14 (gerentes de hotéis, restaurantes, comércio e outros serviços) fica de fora. É a definição que mais se aproxima do informativo: 39,5% de mulheres, contra 39,3% publicados. Com todo o grande grupo 1 (<span class="in">`VD4011 == 1`</span>), o resultado seria 40,7%.</span>
+<span id="cb31-538"><a href="#cb31-538" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Cargo gerencial** (CMIG 4.3): as ocupações de gerência sênior e intermediária, identificadas pelos dois primeiros dígitos do código da ocupação (<span class="in">`V4010`</span>).</span>
 <span id="cb31-539"><a href="#cb31-539" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-542"><a href="#cb31-542" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb31-543"><a href="#cb31-543" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setor-cargo</span></span>
-<span id="cb31-544"><a href="#cb31-544" aria-hidden="true" tabindex="-1"></a>pnadc <span class="ot">&lt;-</span> pnadc <span class="sc">|&gt;</span></span>
-<span id="cb31-545"><a href="#cb31-545" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb31-546"><a href="#cb31-546" aria-hidden="true" tabindex="-1"></a>    <span class="at">setor =</span> <span class="fu">case_when</span>(</span>
-<span id="cb31-547"><a href="#cb31-547" aria-hidden="true" tabindex="-1"></a>      VD4010 <span class="sc">==</span> <span class="dv">1</span> <span class="sc">~</span> <span class="st">'Agropecuária'</span>,</span>
-<span id="cb31-548"><a href="#cb31-548" aria-hidden="true" tabindex="-1"></a>      VD4010 <span class="sc">%in%</span> <span class="dv">2</span><span class="sc">:</span><span class="dv">3</span> <span class="sc">~</span> <span class="st">'Indústria'</span>,</span>
-<span id="cb31-549"><a href="#cb31-549" aria-hidden="true" tabindex="-1"></a>      VD4010 <span class="sc">%in%</span> <span class="dv">4</span><span class="sc">:</span><span class="dv">11</span> <span class="sc">~</span> <span class="st">'Serviços'</span></span>
-<span id="cb31-550"><a href="#cb31-550" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
-<span id="cb31-551"><a href="#cb31-551" aria-hidden="true" tabindex="-1"></a>      <span class="fu">factor</span>(<span class="at">levels =</span> <span class="fu">c</span>(<span class="st">'Agropecuária'</span>, <span class="st">'Indústria'</span>, <span class="st">'Serviços'</span>)),</span>
+<span id="cb31-540"><a href="#cb31-540" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Por que só parte dos diretores e gerentes</span></span>
+<span id="cb31-541"><a href="#cb31-541" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-542"><a href="#cb31-542" aria-hidden="true" tabindex="-1"></a>O CMIG 4.3, que corresponde ao indicador 5.5.2 dos Objetivos de Desenvolvimento Sustentável, mede a presença de mulheres em posições de decisão. A Organização Internacional do Trabalho define essas posições pela Classificação Internacional Uniforme de Ocupações (CIUO-08, ou ISCO-08 em inglês). A classificação usada na PNAD Contínua, a COD, segue a mesma estrutura, de modo que os códigos são comparáveis.</span>
+<span id="cb31-543"><a href="#cb31-543" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-544"><a href="#cb31-544" aria-hidden="true" tabindex="-1"></a>O grande grupo 1 dessa classificação, "Diretores e gerentes", tem quatro subgrupos:</span>
+<span id="cb31-545"><a href="#cb31-545" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-546"><a href="#cb31-546" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Subgrupo <span class="pp">|</span> ISCO-08 <span class="pp">|</span> COD <span class="pp">|</span> Nível de gerência <span class="pp">|</span></span>
+<span id="cb31-547"><a href="#cb31-547" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|---|</span></span>
+<span id="cb31-548"><a href="#cb31-548" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 11 <span class="pp">|</span> Chief executives, senior officials and legislators <span class="pp">|</span> Diretores executivos, dirigentes da administração pública e membros do poder executivo e legislativo <span class="pp">|</span> Sênior e intermediária <span class="pp">|</span></span>
+<span id="cb31-549"><a href="#cb31-549" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 12 <span class="pp">|</span> Administrative and commercial managers <span class="pp">|</span> Dirigentes administrativos e comerciais <span class="pp">|</span> Sênior e intermediária <span class="pp">|</span></span>
+<span id="cb31-550"><a href="#cb31-550" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 13 <span class="pp">|</span> Production and specialized services managers <span class="pp">|</span> Dirigentes e gerentes de produção e operação <span class="pp">|</span> Sênior e intermediária <span class="pp">|</span></span>
+<span id="cb31-551"><a href="#cb31-551" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 14 <span class="pp">|</span> Hospitality, retail and other services managers <span class="pp">|</span> Gerentes de hotéis, restaurantes, comércio e outros serviços <span class="pp">|</span> Júnior <span class="pp">|</span></span>
 <span id="cb31-552"><a href="#cb31-552" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-553"><a href="#cb31-553" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Os dois primeiros dígitos do código da ocupação indicam o subgrupo</span></span>
-<span id="cb31-554"><a href="#cb31-554" aria-hidden="true" tabindex="-1"></a>    <span class="at">cargo_gerencial =</span> <span class="fu">case_when</span>(</span>
-<span id="cb31-555"><a href="#cb31-555" aria-hidden="true" tabindex="-1"></a>      condicao_atividade <span class="sc">!=</span> <span class="st">'Ocupada'</span> <span class="sc">~</span> <span class="cn">NA</span>, <span class="co"># só se aplica a ocupados</span></span>
-<span id="cb31-556"><a href="#cb31-556" aria-hidden="true" tabindex="-1"></a>      <span class="fu">str_sub</span>(V4010, <span class="dv">1</span>, <span class="dv">2</span>) <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">'11'</span>, <span class="st">'12'</span>, <span class="st">'13'</span>) <span class="sc">~</span> <span class="cn">TRUE</span>,</span>
-<span id="cb31-557"><a href="#cb31-557" aria-hidden="true" tabindex="-1"></a>      <span class="at">.default =</span> <span class="cn">FALSE</span></span>
-<span id="cb31-558"><a href="#cb31-558" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb31-559"><a href="#cb31-559" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb31-560"><a href="#cb31-560" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb31-561"><a href="#cb31-561" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-562"><a href="#cb31-562" aria-hidden="true" tabindex="-1"></a><span class="fu">### Das variáveis aos indicadores</span></span>
-<span id="cb31-563"><a href="#cb31-563" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-564"><a href="#cb31-564" aria-hidden="true" tabindex="-1"></a>Cada indicador do curso é uma razão entre um numerador e um denominador, calculados com as variáveis originais e as derivadas acima. Os blocos 5 a 7 calculam esses indicadores; a tabela mostra de onde cada um sai.</span>
-<span id="cb31-565"><a href="#cb31-565" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-566"><a href="#cb31-566" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Indicador (CMIG) <span class="pp">|</span> Tipo <span class="pp">|</span> Numerador <span class="pp">|</span> Denominador <span class="pp">|</span> Variáveis <span class="pp">|</span></span>
-<span id="cb31-567"><a href="#cb31-567" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|---|---|</span></span>
-<span id="cb31-568"><a href="#cb31-568" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **Trabalho** <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span></span>
-<span id="cb31-569"><a href="#cb31-569" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Taxa de participação na força de trabalho (1.3) <span class="pp">|</span> Taxa <span class="pp">|</span> Pessoas de 15 anos ou mais na força de trabalho (ocupadas + desocupadas) <span class="pp">|</span> Pessoas de 15 anos ou mais <span class="pp">|</span> <span class="in">`condicao_atividade`</span>, <span class="in">`V2009`</span> <span class="pp">|</span></span>
-<span id="cb31-570"><a href="#cb31-570" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Nível de ocupação <span class="pp">|</span> Taxa <span class="pp">|</span> Pessoas ocupadas <span class="pp">|</span> Pessoas de 14 anos ou mais <span class="pp">|</span> <span class="in">`condicao_atividade`</span> <span class="pp">|</span></span>
-<span id="cb31-571"><a href="#cb31-571" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Nível de ocupação com e sem criança de até 6 anos (1.15) <span class="pp">|</span> Taxa <span class="pp">|</span> Pessoas ocupadas de 25 a 54 anos <span class="pp">|</span> Pessoas de 25 a 54 anos, com e sem criança no domicílio <span class="pp">|</span> <span class="in">`condicao_atividade`</span>, <span class="in">`V2009`</span>, <span class="in">`crianca_ate_6`</span> <span class="pp">|</span></span>
-<span id="cb31-572"><a href="#cb31-572" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Taxa de desocupação (1.10) <span class="pp">|</span> Taxa <span class="pp">|</span> Pessoas desocupadas <span class="pp">|</span> Pessoas na força de trabalho <span class="pp">|</span> <span class="in">`condicao_atividade`</span> <span class="pp">|</span></span>
-<span id="cb31-573"><a href="#cb31-573" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Informalidade (1.9) <span class="pp">|</span> Proporção <span class="pp">|</span> Ocupados informais em atividades não agrícolas <span class="pp">|</span> Ocupados em atividades não agrícolas <span class="pp">|</span> <span class="in">`informal`</span>, <span class="in">`atividade_agricola`</span> <span class="pp">|</span></span>
-<span id="cb31-574"><a href="#cb31-574" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Ocupação em tempo parcial (1.14) <span class="pp">|</span> Proporção <span class="pp">|</span> Ocupados com até 30 horas habituais por semana <span class="pp">|</span> Pessoas ocupadas <span class="pp">|</span> <span class="in">`VD4031`</span>, <span class="in">`condicao_atividade`</span> <span class="pp">|</span></span>
-<span id="cb31-575"><a href="#cb31-575" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Posição na ocupação: conta própria (1.4), trabalhador familiar auxiliar (1.5) e empregador (1.6) <span class="pp">|</span> Proporção <span class="pp">|</span> Ocupados em cada posição <span class="pp">|</span> Pessoas ocupadas <span class="pp">|</span> <span class="in">`VD4009`</span> (9, 10 e 8), <span class="in">`condicao_atividade`</span> <span class="pp">|</span></span>
-<span id="cb31-576"><a href="#cb31-576" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Ocupados por setor de atividade (1.8) <span class="pp">|</span> Distribuição <span class="pp">|</span> Ocupados em cada setor <span class="pp">|</span> Ocupados com setor definido <span class="pp">|</span> <span class="in">`setor`</span> <span class="pp">|</span></span>
-<span id="cb31-577"><a href="#cb31-577" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Mulheres em cargos gerenciais (4.3) <span class="pp">|</span> Proporção <span class="pp">|</span> Mulheres em cargos gerenciais <span class="pp">|</span> Todas as pessoas em cargos gerenciais <span class="pp">|</span> <span class="in">`cargo_gerencial`</span>, <span class="in">`sexo`</span> <span class="pp">|</span></span>
-<span id="cb31-578"><a href="#cb31-578" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Mulheres entre os trabalhadores domésticos <span class="pp">|</span> Proporção <span class="pp">|</span> Mulheres no trabalho doméstico remunerado <span class="pp">|</span> Todas as pessoas no trabalho doméstico remunerado <span class="pp">|</span> <span class="in">`VD4009`</span> (3 e 4), <span class="in">`sexo`</span> <span class="pp">|</span></span>
-<span id="cb31-579"><a href="#cb31-579" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Carga total de trabalho (1.2) <span class="pp">|</span> Média <span class="pp">|</span> Soma das horas habituais de trabalho e das horas de cuidados e afazeres <span class="pp">|</span> Ocupados que realizaram cuidados ou afazeres <span class="pp">|</span> <span class="in">`VD4031`</span>, <span class="in">`V4121B`</span>, <span class="in">`condicao_atividade`</span> <span class="pp">|</span></span>
-<span id="cb31-580"><a href="#cb31-580" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **Rendimento** <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span></span>
-<span id="cb31-581"><a href="#cb31-581" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Rendimento médio habitual de todos os trabalhos <span class="pp">|</span> Média <span class="pp">|</span> Soma dos rendimentos <span class="pp">|</span> Ocupados com rendimento <span class="pp">|</span> <span class="in">`VD4019`</span> <span class="pp">|</span></span>
-<span id="cb31-582"><a href="#cb31-582" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Razão de rendimento mulheres/homens (1.13) <span class="pp">|</span> Razão <span class="pp">|</span> Rendimento médio das mulheres <span class="pp">|</span> Rendimento médio dos homens <span class="pp">|</span> <span class="in">`VD4019`</span>, <span class="in">`sexo`</span>, <span class="in">`VD4011`</span> (por grupo ocupacional) <span class="pp">|</span></span>
-<span id="cb31-583"><a href="#cb31-583" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **Educação** <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span></span>
-<span id="cb31-584"><a href="#cb31-584" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Nível de instrução da população de 25 anos ou mais (2.11) <span class="pp">|</span> Distribuição <span class="pp">|</span> Pessoas em cada grupo de escolaridade <span class="pp">|</span> Pessoas de 25 anos ou mais <span class="pp">|</span> <span class="in">`escolaridade`</span> <span class="pp">|</span></span>
-<span id="cb31-585"><a href="#cb31-585" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Frequência escolar bruta de 15 a 17 anos (2.3) <span class="pp">|</span> Taxa <span class="pp">|</span> Pessoas de 15 a 17 anos que frequentam escola <span class="pp">|</span> Pessoas de 15 a 17 anos <span class="pp">|</span> <span class="in">`V3002`</span>, <span class="in">`V2009`</span> <span class="pp">|</span></span>
-<span id="cb31-586"><a href="#cb31-586" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Frequência escolar bruta de 18 a 24 anos (2.4) <span class="pp">|</span> Taxa <span class="pp">|</span> Pessoas de 18 a 24 anos que frequentam escola <span class="pp">|</span> Pessoas de 18 a 24 anos <span class="pp">|</span> <span class="in">`V3002`</span>, <span class="in">`V2009`</span> <span class="pp">|</span></span>
-<span id="cb31-587"><a href="#cb31-587" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Taxa de conclusão do ensino fundamental (2.6) <span class="pp">|</span> Taxa <span class="pp">|</span> Pessoas de 17 a 19 anos com fundamental completo ou mais <span class="pp">|</span> Pessoas de 17 a 19 anos <span class="pp">|</span> <span class="in">`VD3004`</span> (3 ou mais), <span class="in">`V2009`</span> <span class="pp">|</span></span>
-<span id="cb31-588"><a href="#cb31-588" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Taxa de conclusão do ensino médio <span class="pp">|</span> Taxa <span class="pp">|</span> Pessoas de 20 a 22 anos com médio completo ou mais <span class="pp">|</span> Pessoas de 20 a 22 anos <span class="pp">|</span> <span class="in">`VD3004`</span> (5 ou mais), <span class="in">`V2009`</span> <span class="pp">|</span></span>
-<span id="cb31-589"><a href="#cb31-589" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Jovens que não estudam nem estão ocupados (1.7) <span class="pp">|</span> Proporção <span class="pp">|</span> Pessoas de 15 a 24 anos não ocupadas e que não frequentam escola <span class="pp">|</span> Pessoas de 15 a 24 anos <span class="pp">|</span> <span class="in">`condicao_atividade`</span>, <span class="in">`V3002`</span>, <span class="in">`V2009`</span> <span class="pp">|</span></span>
-<span id="cb31-590"><a href="#cb31-590" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **Cuidados e afazeres domésticos** <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span></span>
-<span id="cb31-591"><a href="#cb31-591" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Horas semanais em cuidados e afazeres (1.1) <span class="pp">|</span> Média <span class="pp">|</span> Soma das horas dedicadas <span class="pp">|</span> Pessoas de 14 anos ou mais que realizaram cuidados ou afazeres <span class="pp">|</span> <span class="in">`V4121B`</span> <span class="pp">|</span></span>
-<span id="cb31-592"><a href="#cb31-592" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Taxa de realização de afazeres domésticos <span class="pp">|</span> Taxa <span class="pp">|</span> Pessoas que realizaram afazeres <span class="pp">|</span> Pessoas de 14 anos ou mais <span class="pp">|</span> <span class="in">`realizou_afazeres`</span> <span class="pp">|</span></span>
-<span id="cb31-593"><a href="#cb31-593" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Taxa de realização de cuidados de pessoas <span class="pp">|</span> Taxa <span class="pp">|</span> Pessoas que realizaram cuidados <span class="pp">|</span> Pessoas de 14 anos ou mais <span class="pp">|</span> <span class="in">`realizou_cuidados`</span> <span class="pp">|</span></span>
-<span id="cb31-594"><a href="#cb31-594" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-595"><a href="#cb31-595" aria-hidden="true" tabindex="-1"></a>: Todos os indicadores podem ser desagregados por <span class="in">`cor_raca`</span>, <span class="in">`faixa_etaria`</span>, <span class="in">`regiao`</span>, <span class="in">`territorio`</span> e <span class="in">`situacao`</span>, sempre cruzando com <span class="in">`sexo`</span>.</span>
-<span id="cb31-596"><a href="#cb31-596" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-597"><a href="#cb31-597" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
-<span id="cb31-598"><a href="#cb31-598" aria-hidden="true" tabindex="-1"></a><span class="fu">## Cuidados na leitura da tabela</span></span>
-<span id="cb31-599"><a href="#cb31-599" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Idade na taxa de participação:** o CMIG usa 15 anos ou mais, e é assim que o informativo calcula. As divulgações regulares da PNAD Contínua usam 14 anos ou mais, a idade de trabalhar adotada pelo IBGE. Por isso o nível de ocupação e a taxa de desocupação aparecem aqui com 14 anos ou mais.</span>
-<span id="cb31-600"><a href="#cb31-600" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Carga total de trabalho:** calculada com as horas habituais de trabalho. É uma aproximação: o resultado de 2022 fica em 52,6 horas para os homens e 55,0 para as mulheres, contra 52,1 e 54,4 no informativo, cuja definição exata não foi identificada.</span>
-<span id="cb31-601"><a href="#cb31-601" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Indicadores de educação:** o informativo usa o 2º trimestre, que tem o módulo ampliado de educação. Com a 5ª visita, os resultados ficam próximos, mas não idênticos.</span>
-<span id="cb31-602"><a href="#cb31-602" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Horas em cuidados e afazeres:** o denominador é quem realizou as atividades, e não toda a população de 14 anos ou mais. A pergunta das horas (<span class="in">`V4121B`</span>) só é feita a quem respondeu "sim" a alguma delas.</span>
-<span id="cb31-603"><a href="#cb31-603" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Jovens que não estudam nem estão ocupados:** o informativo também exclui quem estava em curso de qualificação profissional, informação que não está na base do curso. Por isso, o resultado aqui fica um pouco acima do publicado.</span>
-<span id="cb31-604"><a href="#cb31-604" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Taxas de realização de afazeres e de cuidados:** não estão no informativo, mas complementam a média de horas: mostram quantas pessoas realizam as atividades, e não só quanto tempo dedicam.</span>
-<span id="cb31-605"><a href="#cb31-605" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb31-606"><a href="#cb31-606" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-607"><a href="#cb31-607" aria-hidden="true" tabindex="-1"></a><span class="fu">## 5. Primeiras estimativas e primeiro gráfico</span></span>
-<span id="cb31-608"><a href="#cb31-608" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-611"><a href="#cb31-611" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb31-612"><a href="#cb31-612" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: estimativas-dplyr</span></span>
-<span id="cb31-613"><a href="#cb31-613" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: a mesma estimativa sem peso e com peso (dplyr)</span></span>
-<span id="cb31-614"><a href="#cb31-614" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb31-615"><a href="#cb31-615" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-618"><a href="#cb31-618" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb31-619"><a href="#cb31-619" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: grafico-inicial</span></span>
-<span id="cb31-620"><a href="#cb31-620" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: gráfico de mulheres e homens com ggplot2</span></span>
-<span id="cb31-621"><a href="#cb31-621" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb31-622"><a href="#cb31-622" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-623"><a href="#cb31-623" aria-hidden="true" tabindex="-1"></a><span class="fu">## 6. O desenho amostral</span></span>
-<span id="cb31-624"><a href="#cb31-624" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-627"><a href="#cb31-627" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb31-628"><a href="#cb31-628" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: desenho</span></span>
-<span id="cb31-629"><a href="#cb31-629" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: desenho amostral com srvyr, usando o peso já calibrado pelo IBGE:</span></span>
-<span id="cb31-630"><a href="#cb31-630" aria-hidden="true" tabindex="-1"></a><span class="co">#       ids = UPA + ID_DOMICILIO (dois estágios), strata = Estrato,</span></span>
-<span id="cb31-631"><a href="#cb31-631" aria-hidden="true" tabindex="-1"></a><span class="co">#       weights = V1032, nest = TRUE, e options(survey.lonely.psu = 'adjust')</span></span>
-<span id="cb31-632"><a href="#cb31-632" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb31-633"><a href="#cb31-633" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-636"><a href="#cb31-636" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb31-637"><a href="#cb31-637" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: dplyr-vs-srvyr</span></span>
-<span id="cb31-638"><a href="#cb31-638" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: a estimativa do bloco 5 refeita com srvyr, com IC e CV</span></span>
-<span id="cb31-639"><a href="#cb31-639" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb31-640"><a href="#cb31-640" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-641"><a href="#cb31-641" aria-hidden="true" tabindex="-1"></a><span class="fu">### Três formas de calcular a precisão</span></span>
-<span id="cb31-642"><a href="#cb31-642" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-643"><a href="#cb31-643" aria-hidden="true" tabindex="-1"></a>Pré-calculado: só roda com <span class="in">`gerar_base: true`</span>, porque exige os pesos replicados e alguns minutos de processamento. Em sala, os alunos veem o resultado guardado.</span>
-<span id="cb31-644"><a href="#cb31-644" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-647"><a href="#cb31-647" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb31-648"><a href="#cb31-648" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: comparacao-metodos</span></span>
-<span id="cb31-649"><a href="#cb31-649" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: !expr params$gerar_base</span></span>
-<span id="cb31-650"><a href="#cb31-650" aria-hidden="true" tabindex="-1"></a><span class="co">#| cache: true</span></span>
-<span id="cb31-651"><a href="#cb31-651" aria-hidden="true" tabindex="-1"></a><span class="co">#| cache.extra: !expr c(params$ano, params$visita)</span></span>
-<span id="cb31-652"><a href="#cb31-652" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: mesma estimativa (horas de afazeres por sexo) em três desenhos, com</span></span>
-<span id="cb31-653"><a href="#cb31-653" aria-hidden="true" tabindex="-1"></a><span class="co">#       tempo de criação, tempo de estimação e erro-padrão de cada um:</span></span>
-<span id="cb31-654"><a href="#cb31-654" aria-hidden="true" tabindex="-1"></a><span class="co">#       1. V1032 direto (o desenho usado em sala)</span></span>
-<span id="cb31-655"><a href="#cb31-655" aria-hidden="true" tabindex="-1"></a><span class="co">#       2. V1031 calibrado por posest (V1030) e posest_sxi (V1034), por raking</span></span>
-<span id="cb31-656"><a href="#cb31-656" aria-hidden="true" tabindex="-1"></a><span class="co">#       3. pesos replicados V1032001 a V1032200 (bootstrap), juntados pela chave</span></span>
-<span id="cb31-657"><a href="#cb31-657" aria-hidden="true" tabindex="-1"></a><span class="co">#       As estimativas pontuais devem ser idênticas; só o erro-padrão muda.</span></span>
-<span id="cb31-658"><a href="#cb31-658" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb31-553"><a href="#cb31-553" aria-hidden="true" tabindex="-1"></a>O indicador considera os subgrupos **11, 12 e 13**, que reúnem a gerência sênior e intermediária: quem dirige organizações, define políticas e coordena áreas inteiras. O subgrupo **14** fica de fora porque é classificado como gerência júnior: reúne gerentes de estabelecimentos pequenos, como lojas, restaurantes e pousadas, que em geral acumulam a gerência com a operação do dia a dia e têm autonomia de decisão mais limitada.</span>
+<span id="cb31-554"><a href="#cb31-554" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-555"><a href="#cb31-555" aria-hidden="true" tabindex="-1"></a>A distinção importa para a análise de gênero. Como as mulheres estão mais presentes na gerência de comércio e serviços, incluir o subgrupo 14 aumentaria a participação feminina medida, sem que isso refletisse maior acesso aos postos onde as decisões de maior alcance são tomadas.</span>
+<span id="cb31-556"><a href="#cb31-556" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-559"><a href="#cb31-559" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb31-560"><a href="#cb31-560" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setor-cargo</span></span>
+<span id="cb31-561"><a href="#cb31-561" aria-hidden="true" tabindex="-1"></a>pnadc <span class="ot">&lt;-</span> pnadc <span class="sc">|&gt;</span></span>
+<span id="cb31-562"><a href="#cb31-562" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb31-563"><a href="#cb31-563" aria-hidden="true" tabindex="-1"></a>    <span class="at">setor =</span> <span class="fu">case_when</span>(</span>
+<span id="cb31-564"><a href="#cb31-564" aria-hidden="true" tabindex="-1"></a>      VD4010 <span class="sc">==</span> <span class="dv">1</span> <span class="sc">~</span> <span class="st">'Agropecuária'</span>,</span>
+<span id="cb31-565"><a href="#cb31-565" aria-hidden="true" tabindex="-1"></a>      VD4010 <span class="sc">%in%</span> <span class="dv">2</span><span class="sc">:</span><span class="dv">3</span> <span class="sc">~</span> <span class="st">'Indústria'</span>,</span>
+<span id="cb31-566"><a href="#cb31-566" aria-hidden="true" tabindex="-1"></a>      VD4010 <span class="sc">%in%</span> <span class="dv">4</span><span class="sc">:</span><span class="dv">11</span> <span class="sc">~</span> <span class="st">'Serviços'</span></span>
+<span id="cb31-567"><a href="#cb31-567" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb31-568"><a href="#cb31-568" aria-hidden="true" tabindex="-1"></a>      <span class="fu">factor</span>(<span class="at">levels =</span> <span class="fu">c</span>(<span class="st">'Agropecuária'</span>, <span class="st">'Indústria'</span>, <span class="st">'Serviços'</span>)),</span>
+<span id="cb31-569"><a href="#cb31-569" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-570"><a href="#cb31-570" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Os dois primeiros dígitos do código da ocupação indicam o subgrupo</span></span>
+<span id="cb31-571"><a href="#cb31-571" aria-hidden="true" tabindex="-1"></a>    <span class="at">cargo_gerencial =</span> <span class="fu">case_when</span>(</span>
+<span id="cb31-572"><a href="#cb31-572" aria-hidden="true" tabindex="-1"></a>      condicao_atividade <span class="sc">!=</span> <span class="st">'Ocupada'</span> <span class="sc">~</span> <span class="cn">NA</span>, <span class="co"># só se aplica a ocupados</span></span>
+<span id="cb31-573"><a href="#cb31-573" aria-hidden="true" tabindex="-1"></a>      <span class="fu">str_sub</span>(V4010, <span class="dv">1</span>, <span class="dv">2</span>) <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">'11'</span>, <span class="st">'12'</span>, <span class="st">'13'</span>) <span class="sc">~</span> <span class="cn">TRUE</span>,</span>
+<span id="cb31-574"><a href="#cb31-574" aria-hidden="true" tabindex="-1"></a>      <span class="at">.default =</span> <span class="cn">FALSE</span></span>
+<span id="cb31-575"><a href="#cb31-575" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb31-576"><a href="#cb31-576" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb31-577"><a href="#cb31-577" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb31-578"><a href="#cb31-578" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-579"><a href="#cb31-579" aria-hidden="true" tabindex="-1"></a><span class="fu">### Das variáveis aos indicadores</span></span>
+<span id="cb31-580"><a href="#cb31-580" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-581"><a href="#cb31-581" aria-hidden="true" tabindex="-1"></a>Cada indicador do curso é uma razão entre um numerador e um denominador, calculados com as variáveis originais e as derivadas acima. Os blocos 5 a 7 calculam esses indicadores; a tabela mostra de onde cada um sai.</span>
+<span id="cb31-582"><a href="#cb31-582" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-583"><a href="#cb31-583" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Indicador (CMIG) <span class="pp">|</span> Tipo <span class="pp">|</span> Numerador <span class="pp">|</span> Denominador <span class="pp">|</span> Variáveis <span class="pp">|</span></span>
+<span id="cb31-584"><a href="#cb31-584" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|---|---|</span></span>
+<span id="cb31-585"><a href="#cb31-585" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **Trabalho** <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span></span>
+<span id="cb31-586"><a href="#cb31-586" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Taxa de participação na força de trabalho (1.3) <span class="pp">|</span> Taxa <span class="pp">|</span> Pessoas de 15 anos ou mais na força de trabalho (ocupadas + desocupadas) <span class="pp">|</span> Pessoas de 15 anos ou mais <span class="pp">|</span> <span class="in">`condicao_atividade`</span>, <span class="in">`V2009`</span> <span class="pp">|</span></span>
+<span id="cb31-587"><a href="#cb31-587" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Nível de ocupação <span class="pp">|</span> Taxa <span class="pp">|</span> Pessoas ocupadas <span class="pp">|</span> Pessoas de 14 anos ou mais <span class="pp">|</span> <span class="in">`condicao_atividade`</span> <span class="pp">|</span></span>
+<span id="cb31-588"><a href="#cb31-588" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Nível de ocupação com e sem criança de até 6 anos (1.15) <span class="pp">|</span> Taxa <span class="pp">|</span> Pessoas ocupadas de 25 a 54 anos <span class="pp">|</span> Pessoas de 25 a 54 anos, com e sem criança no domicílio <span class="pp">|</span> <span class="in">`condicao_atividade`</span>, <span class="in">`V2009`</span>, <span class="in">`crianca_ate_6`</span> <span class="pp">|</span></span>
+<span id="cb31-589"><a href="#cb31-589" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Taxa de desocupação (1.10) <span class="pp">|</span> Taxa <span class="pp">|</span> Pessoas desocupadas <span class="pp">|</span> Pessoas na força de trabalho <span class="pp">|</span> <span class="in">`condicao_atividade`</span> <span class="pp">|</span></span>
+<span id="cb31-590"><a href="#cb31-590" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Informalidade (1.9) <span class="pp">|</span> Proporção <span class="pp">|</span> Ocupados informais em atividades não agrícolas <span class="pp">|</span> Ocupados em atividades não agrícolas <span class="pp">|</span> <span class="in">`informal`</span>, <span class="in">`atividade_agricola`</span> <span class="pp">|</span></span>
+<span id="cb31-591"><a href="#cb31-591" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Ocupação em tempo parcial (1.14) <span class="pp">|</span> Proporção <span class="pp">|</span> Ocupados com até 30 horas habituais por semana <span class="pp">|</span> Pessoas ocupadas <span class="pp">|</span> <span class="in">`VD4031`</span>, <span class="in">`condicao_atividade`</span> <span class="pp">|</span></span>
+<span id="cb31-592"><a href="#cb31-592" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Posição na ocupação: conta própria (1.4), trabalhador familiar auxiliar (1.5) e empregador (1.6) <span class="pp">|</span> Proporção <span class="pp">|</span> Ocupados em cada posição <span class="pp">|</span> Pessoas ocupadas <span class="pp">|</span> <span class="in">`VD4009`</span> (9, 10 e 8), <span class="in">`condicao_atividade`</span> <span class="pp">|</span></span>
+<span id="cb31-593"><a href="#cb31-593" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Ocupados por setor de atividade (1.8) <span class="pp">|</span> Distribuição <span class="pp">|</span> Ocupados em cada setor <span class="pp">|</span> Ocupados com setor definido <span class="pp">|</span> <span class="in">`setor`</span> <span class="pp">|</span></span>
+<span id="cb31-594"><a href="#cb31-594" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Mulheres em cargos gerenciais (4.3) <span class="pp">|</span> Proporção <span class="pp">|</span> Mulheres em cargos gerenciais <span class="pp">|</span> Todas as pessoas em cargos gerenciais <span class="pp">|</span> <span class="in">`cargo_gerencial`</span>, <span class="in">`sexo`</span> <span class="pp">|</span></span>
+<span id="cb31-595"><a href="#cb31-595" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Mulheres entre os trabalhadores domésticos <span class="pp">|</span> Proporção <span class="pp">|</span> Mulheres no trabalho doméstico remunerado <span class="pp">|</span> Todas as pessoas no trabalho doméstico remunerado <span class="pp">|</span> <span class="in">`VD4009`</span> (3 e 4), <span class="in">`sexo`</span> <span class="pp">|</span></span>
+<span id="cb31-596"><a href="#cb31-596" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Carga total de trabalho (1.2) <span class="pp">|</span> Média <span class="pp">|</span> Soma das horas habituais de trabalho e das horas de cuidados e afazeres <span class="pp">|</span> Ocupados que realizaram cuidados ou afazeres <span class="pp">|</span> <span class="in">`VD4031`</span>, <span class="in">`V4121B`</span>, <span class="in">`condicao_atividade`</span> <span class="pp">|</span></span>
+<span id="cb31-597"><a href="#cb31-597" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **Rendimento** <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span></span>
+<span id="cb31-598"><a href="#cb31-598" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Rendimento médio habitual de todos os trabalhos <span class="pp">|</span> Média <span class="pp">|</span> Soma dos rendimentos <span class="pp">|</span> Ocupados com rendimento <span class="pp">|</span> <span class="in">`VD4019`</span> <span class="pp">|</span></span>
+<span id="cb31-599"><a href="#cb31-599" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Razão de rendimento mulheres/homens (1.13) <span class="pp">|</span> Razão <span class="pp">|</span> Rendimento médio das mulheres <span class="pp">|</span> Rendimento médio dos homens <span class="pp">|</span> <span class="in">`VD4019`</span>, <span class="in">`sexo`</span>, <span class="in">`VD4011`</span> (por grupo ocupacional) <span class="pp">|</span></span>
+<span id="cb31-600"><a href="#cb31-600" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **Educação** <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span></span>
+<span id="cb31-601"><a href="#cb31-601" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Nível de instrução da população de 25 anos ou mais (2.11) <span class="pp">|</span> Distribuição <span class="pp">|</span> Pessoas em cada grupo de escolaridade <span class="pp">|</span> Pessoas de 25 anos ou mais <span class="pp">|</span> <span class="in">`escolaridade`</span> <span class="pp">|</span></span>
+<span id="cb31-602"><a href="#cb31-602" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Frequência escolar bruta de 15 a 17 anos (2.3) <span class="pp">|</span> Taxa <span class="pp">|</span> Pessoas de 15 a 17 anos que frequentam escola <span class="pp">|</span> Pessoas de 15 a 17 anos <span class="pp">|</span> <span class="in">`V3002`</span>, <span class="in">`V2009`</span> <span class="pp">|</span></span>
+<span id="cb31-603"><a href="#cb31-603" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Frequência escolar bruta de 18 a 24 anos (2.4) <span class="pp">|</span> Taxa <span class="pp">|</span> Pessoas de 18 a 24 anos que frequentam escola <span class="pp">|</span> Pessoas de 18 a 24 anos <span class="pp">|</span> <span class="in">`V3002`</span>, <span class="in">`V2009`</span> <span class="pp">|</span></span>
+<span id="cb31-604"><a href="#cb31-604" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Taxa de conclusão do ensino fundamental (2.6) <span class="pp">|</span> Taxa <span class="pp">|</span> Pessoas de 17 a 19 anos com fundamental completo ou mais <span class="pp">|</span> Pessoas de 17 a 19 anos <span class="pp">|</span> <span class="in">`VD3004`</span> (3 ou mais), <span class="in">`V2009`</span> <span class="pp">|</span></span>
+<span id="cb31-605"><a href="#cb31-605" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Taxa de conclusão do ensino médio <span class="pp">|</span> Taxa <span class="pp">|</span> Pessoas de 20 a 22 anos com médio completo ou mais <span class="pp">|</span> Pessoas de 20 a 22 anos <span class="pp">|</span> <span class="in">`VD3004`</span> (5 ou mais), <span class="in">`V2009`</span> <span class="pp">|</span></span>
+<span id="cb31-606"><a href="#cb31-606" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Jovens que não estudam nem estão ocupados (1.7) <span class="pp">|</span> Proporção <span class="pp">|</span> Pessoas de 15 a 24 anos não ocupadas e que não frequentam escola <span class="pp">|</span> Pessoas de 15 a 24 anos <span class="pp">|</span> <span class="in">`condicao_atividade`</span>, <span class="in">`V3002`</span>, <span class="in">`V2009`</span> <span class="pp">|</span></span>
+<span id="cb31-607"><a href="#cb31-607" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> **Cuidados e afazeres domésticos** <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span> <span class="pp">|</span></span>
+<span id="cb31-608"><a href="#cb31-608" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Horas semanais em cuidados e afazeres (1.1) <span class="pp">|</span> Média <span class="pp">|</span> Soma das horas dedicadas <span class="pp">|</span> Pessoas de 14 anos ou mais que realizaram cuidados ou afazeres <span class="pp">|</span> <span class="in">`V4121B`</span> <span class="pp">|</span></span>
+<span id="cb31-609"><a href="#cb31-609" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Taxa de realização de afazeres domésticos <span class="pp">|</span> Taxa <span class="pp">|</span> Pessoas que realizaram afazeres <span class="pp">|</span> Pessoas de 14 anos ou mais <span class="pp">|</span> <span class="in">`realizou_afazeres`</span> <span class="pp">|</span></span>
+<span id="cb31-610"><a href="#cb31-610" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Taxa de realização de cuidados de pessoas <span class="pp">|</span> Taxa <span class="pp">|</span> Pessoas que realizaram cuidados <span class="pp">|</span> Pessoas de 14 anos ou mais <span class="pp">|</span> <span class="in">`realizou_cuidados`</span> <span class="pp">|</span></span>
+<span id="cb31-611"><a href="#cb31-611" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-612"><a href="#cb31-612" aria-hidden="true" tabindex="-1"></a>: Todos os indicadores podem ser desagregados por <span class="in">`cor_raca`</span>, <span class="in">`faixa_etaria`</span>, <span class="in">`regiao`</span>, <span class="in">`territorio`</span> e <span class="in">`situacao`</span>, sempre cruzando com <span class="in">`sexo`</span>.</span>
+<span id="cb31-613"><a href="#cb31-613" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-614"><a href="#cb31-614" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
+<span id="cb31-615"><a href="#cb31-615" aria-hidden="true" tabindex="-1"></a><span class="fu">## Cuidados na leitura da tabela</span></span>
+<span id="cb31-616"><a href="#cb31-616" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Idade na taxa de participação:** o CMIG usa 15 anos ou mais, e é assim que o informativo calcula. As divulgações regulares da PNAD Contínua usam 14 anos ou mais, a idade de trabalhar adotada pelo IBGE. Por isso o nível de ocupação e a taxa de desocupação aparecem aqui com 14 anos ou mais.</span>
+<span id="cb31-617"><a href="#cb31-617" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Carga total de trabalho:** calculada com as horas habituais de trabalho. É uma aproximação: o resultado de 2022 fica em 52,6 horas para os homens e 55,0 para as mulheres, contra 52,1 e 54,4 no informativo, cuja definição exata não foi identificada.</span>
+<span id="cb31-618"><a href="#cb31-618" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Indicadores de educação:** o informativo usa o 2º trimestre, que tem o módulo ampliado de educação. Com a 5ª visita, os resultados ficam próximos, mas não idênticos.</span>
+<span id="cb31-619"><a href="#cb31-619" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Horas em cuidados e afazeres:** o denominador é quem realizou as atividades, e não toda a população de 14 anos ou mais. A pergunta das horas (<span class="in">`V4121B`</span>) só é feita a quem respondeu "sim" a alguma delas.</span>
+<span id="cb31-620"><a href="#cb31-620" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Jovens que não estudam nem estão ocupados:** o informativo também exclui quem estava em curso de qualificação profissional, informação que não está na base do curso. Por isso, o resultado aqui fica um pouco acima do publicado.</span>
+<span id="cb31-621"><a href="#cb31-621" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Taxas de realização de afazeres e de cuidados:** não estão no informativo, mas complementam a média de horas: mostram quantas pessoas realizam as atividades, e não só quanto tempo dedicam.</span>
+<span id="cb31-622"><a href="#cb31-622" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb31-623"><a href="#cb31-623" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-624"><a href="#cb31-624" aria-hidden="true" tabindex="-1"></a><span class="fu">## 5. Primeiras estimativas e primeiro gráfico</span></span>
+<span id="cb31-625"><a href="#cb31-625" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-628"><a href="#cb31-628" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb31-629"><a href="#cb31-629" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: estimativas-dplyr</span></span>
+<span id="cb31-630"><a href="#cb31-630" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: a mesma estimativa sem peso e com peso (dplyr)</span></span>
+<span id="cb31-631"><a href="#cb31-631" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb31-632"><a href="#cb31-632" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-635"><a href="#cb31-635" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb31-636"><a href="#cb31-636" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: grafico-inicial</span></span>
+<span id="cb31-637"><a href="#cb31-637" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: gráfico de mulheres e homens com ggplot2</span></span>
+<span id="cb31-638"><a href="#cb31-638" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb31-639"><a href="#cb31-639" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-640"><a href="#cb31-640" aria-hidden="true" tabindex="-1"></a><span class="fu">## 6. O desenho amostral</span></span>
+<span id="cb31-641"><a href="#cb31-641" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-644"><a href="#cb31-644" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb31-645"><a href="#cb31-645" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: desenho</span></span>
+<span id="cb31-646"><a href="#cb31-646" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: desenho amostral com srvyr, usando o peso já calibrado pelo IBGE:</span></span>
+<span id="cb31-647"><a href="#cb31-647" aria-hidden="true" tabindex="-1"></a><span class="co">#       ids = UPA + ID_DOMICILIO (dois estágios), strata = Estrato,</span></span>
+<span id="cb31-648"><a href="#cb31-648" aria-hidden="true" tabindex="-1"></a><span class="co">#       weights = V1032, nest = TRUE, e options(survey.lonely.psu = 'adjust')</span></span>
+<span id="cb31-649"><a href="#cb31-649" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb31-650"><a href="#cb31-650" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-653"><a href="#cb31-653" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb31-654"><a href="#cb31-654" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: dplyr-vs-srvyr</span></span>
+<span id="cb31-655"><a href="#cb31-655" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: a estimativa do bloco 5 refeita com srvyr, com IC e CV</span></span>
+<span id="cb31-656"><a href="#cb31-656" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb31-657"><a href="#cb31-657" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-658"><a href="#cb31-658" aria-hidden="true" tabindex="-1"></a><span class="fu">### Três formas de calcular a precisão</span></span>
 <span id="cb31-659"><a href="#cb31-659" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-660"><a href="#cb31-660" aria-hidden="true" tabindex="-1"></a><span class="fu">## 7. Indicadores</span></span>
+<span id="cb31-660"><a href="#cb31-660" aria-hidden="true" tabindex="-1"></a>Pré-calculado: só roda com <span class="in">`gerar_base: true`</span>, porque exige os pesos replicados e alguns minutos de processamento. Em sala, os alunos veem o resultado guardado.</span>
 <span id="cb31-661"><a href="#cb31-661" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-662"><a href="#cb31-662" aria-hidden="true" tabindex="-1"></a><span class="fu">### Trabalho e renda</span></span>
-<span id="cb31-663"><a href="#cb31-663" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-666"><a href="#cb31-666" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb31-667"><a href="#cb31-667" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: ind-trabalho</span></span>
-<span id="cb31-668"><a href="#cb31-668" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: taxa de participação (1.8), taxa de desocupação (1.10),</span></span>
-<span id="cb31-669"><a href="#cb31-669" aria-hidden="true" tabindex="-1"></a><span class="co">#       informalidade (1.9) e razão de rendimentos por grupo ocupacional (1.13)</span></span>
-<span id="cb31-670"><a href="#cb31-670" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb31-671"><a href="#cb31-671" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-672"><a href="#cb31-672" aria-hidden="true" tabindex="-1"></a><span class="fu">### Educação</span></span>
-<span id="cb31-673"><a href="#cb31-673" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-676"><a href="#cb31-676" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb31-677"><a href="#cb31-677" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: ind-educacao</span></span>
-<span id="cb31-678"><a href="#cb31-678" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: nível de instrução da população de 25 anos ou mais (2.11)</span></span>
-<span id="cb31-679"><a href="#cb31-679" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb31-664"><a href="#cb31-664" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb31-665"><a href="#cb31-665" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: comparacao-metodos</span></span>
+<span id="cb31-666"><a href="#cb31-666" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: !expr params$gerar_base</span></span>
+<span id="cb31-667"><a href="#cb31-667" aria-hidden="true" tabindex="-1"></a><span class="co">#| cache: true</span></span>
+<span id="cb31-668"><a href="#cb31-668" aria-hidden="true" tabindex="-1"></a><span class="co">#| cache.extra: !expr c(params$ano, params$visita)</span></span>
+<span id="cb31-669"><a href="#cb31-669" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: mesma estimativa (horas de afazeres por sexo) em três desenhos, com</span></span>
+<span id="cb31-670"><a href="#cb31-670" aria-hidden="true" tabindex="-1"></a><span class="co">#       tempo de criação, tempo de estimação e erro-padrão de cada um:</span></span>
+<span id="cb31-671"><a href="#cb31-671" aria-hidden="true" tabindex="-1"></a><span class="co">#       1. V1032 direto (o desenho usado em sala)</span></span>
+<span id="cb31-672"><a href="#cb31-672" aria-hidden="true" tabindex="-1"></a><span class="co">#       2. V1031 calibrado por posest (V1030) e posest_sxi (V1034), por raking</span></span>
+<span id="cb31-673"><a href="#cb31-673" aria-hidden="true" tabindex="-1"></a><span class="co">#       3. pesos replicados V1032001 a V1032200 (bootstrap), juntados pela chave</span></span>
+<span id="cb31-674"><a href="#cb31-674" aria-hidden="true" tabindex="-1"></a><span class="co">#       As estimativas pontuais devem ser idênticas; só o erro-padrão muda.</span></span>
+<span id="cb31-675"><a href="#cb31-675" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb31-676"><a href="#cb31-676" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-677"><a href="#cb31-677" aria-hidden="true" tabindex="-1"></a><span class="fu">## 7. Indicadores</span></span>
+<span id="cb31-678"><a href="#cb31-678" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-679"><a href="#cb31-679" aria-hidden="true" tabindex="-1"></a><span class="fu">### Trabalho e renda</span></span>
 <span id="cb31-680"><a href="#cb31-680" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-681"><a href="#cb31-681" aria-hidden="true" tabindex="-1"></a><span class="fu">### Trabalho não remunerado e domicílio</span></span>
-<span id="cb31-682"><a href="#cb31-682" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-685"><a href="#cb31-685" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb31-686"><a href="#cb31-686" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: ind-afazeres</span></span>
-<span id="cb31-687"><a href="#cb31-687" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: horas semanais em cuidados e afazeres domésticos (1.1), também por</span></span>
-<span id="cb31-688"><a href="#cb31-688" aria-hidden="true" tabindex="-1"></a><span class="co">#       classes de rendimento domiciliar per capita (VD5008)</span></span>
-<span id="cb31-689"><a href="#cb31-689" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb31-683"><a href="#cb31-683" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb31-684"><a href="#cb31-684" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: ind-trabalho</span></span>
+<span id="cb31-685"><a href="#cb31-685" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: taxa de participação (1.8), taxa de desocupação (1.10),</span></span>
+<span id="cb31-686"><a href="#cb31-686" aria-hidden="true" tabindex="-1"></a><span class="co">#       informalidade (1.9) e razão de rendimentos por grupo ocupacional (1.13)</span></span>
+<span id="cb31-687"><a href="#cb31-687" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb31-688"><a href="#cb31-688" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-689"><a href="#cb31-689" aria-hidden="true" tabindex="-1"></a><span class="fu">### Educação</span></span>
 <span id="cb31-690"><a href="#cb31-690" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-691"><a href="#cb31-691" aria-hidden="true" tabindex="-1"></a><span class="fu">### Validação com o IBGE</span></span>
-<span id="cb31-692"><a href="#cb31-692" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-695"><a href="#cb31-695" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb31-696"><a href="#cb31-696" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: validacao</span></span>
-<span id="cb31-697"><a href="#cb31-697" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: comparar os resultados de 2022 com os números do informativo.</span></span>
-<span id="cb31-698"><a href="#cb31-698" aria-hidden="true" tabindex="-1"></a><span class="co">#       Já conferido: horas de afazeres e cuidados de 11,71 (homens) e</span></span>
-<span id="cb31-699"><a href="#cb31-699" aria-hidden="true" tabindex="-1"></a><span class="co">#       21,26 (mulheres), contra 11,7 e 21,3 no informativo</span></span>
-<span id="cb31-700"><a href="#cb31-700" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb31-701"><a href="#cb31-701" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-702"><a href="#cb31-702" aria-hidden="true" tabindex="-1"></a><span class="fu">## 8. Comparações</span></span>
-<span id="cb31-703"><a href="#cb31-703" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-704"><a href="#cb31-704" aria-hidden="true" tabindex="-1"></a><span class="fu">### Recorte territorial e precisão</span></span>
-<span id="cb31-705"><a href="#cb31-705" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-708"><a href="#cb31-708" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb31-709"><a href="#cb31-709" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: territorio</span></span>
-<span id="cb31-710"><a href="#cb31-710" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: Brasil, UFs selecionadas e capital, resto da RM e interior,</span></span>
-<span id="cb31-711"><a href="#cb31-711" aria-hidden="true" tabindex="-1"></a><span class="co">#       com semáforo de CV</span></span>
-<span id="cb31-712"><a href="#cb31-712" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb31-713"><a href="#cb31-713" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-714"><a href="#cb31-714" aria-hidden="true" tabindex="-1"></a><span class="fu">### Testes de hipóteses</span></span>
-<span id="cb31-715"><a href="#cb31-715" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-718"><a href="#cb31-718" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb31-719"><a href="#cb31-719" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: testes</span></span>
-<span id="cb31-720"><a href="#cb31-720" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: teste t com desenho e qui-quadrado de Rao-Scott</span></span>
-<span id="cb31-721"><a href="#cb31-721" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb31-693"><a href="#cb31-693" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb31-694"><a href="#cb31-694" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: ind-educacao</span></span>
+<span id="cb31-695"><a href="#cb31-695" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: nível de instrução da população de 25 anos ou mais (2.11)</span></span>
+<span id="cb31-696"><a href="#cb31-696" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb31-697"><a href="#cb31-697" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-698"><a href="#cb31-698" aria-hidden="true" tabindex="-1"></a><span class="fu">### Trabalho não remunerado e domicílio</span></span>
+<span id="cb31-699"><a href="#cb31-699" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-702"><a href="#cb31-702" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb31-703"><a href="#cb31-703" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: ind-afazeres</span></span>
+<span id="cb31-704"><a href="#cb31-704" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: horas semanais em cuidados e afazeres domésticos (1.1), também por</span></span>
+<span id="cb31-705"><a href="#cb31-705" aria-hidden="true" tabindex="-1"></a><span class="co">#       classes de rendimento domiciliar per capita (VD5008)</span></span>
+<span id="cb31-706"><a href="#cb31-706" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb31-707"><a href="#cb31-707" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-708"><a href="#cb31-708" aria-hidden="true" tabindex="-1"></a><span class="fu">### Validação com o IBGE</span></span>
+<span id="cb31-709"><a href="#cb31-709" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-712"><a href="#cb31-712" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb31-713"><a href="#cb31-713" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: validacao</span></span>
+<span id="cb31-714"><a href="#cb31-714" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: comparar os resultados de 2022 com os números do informativo.</span></span>
+<span id="cb31-715"><a href="#cb31-715" aria-hidden="true" tabindex="-1"></a><span class="co">#       Já conferido: horas de afazeres e cuidados de 11,71 (homens) e</span></span>
+<span id="cb31-716"><a href="#cb31-716" aria-hidden="true" tabindex="-1"></a><span class="co">#       21,26 (mulheres), contra 11,7 e 21,3 no informativo</span></span>
+<span id="cb31-717"><a href="#cb31-717" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb31-718"><a href="#cb31-718" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-719"><a href="#cb31-719" aria-hidden="true" tabindex="-1"></a><span class="fu">## 8. Comparações</span></span>
+<span id="cb31-720"><a href="#cb31-720" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-721"><a href="#cb31-721" aria-hidden="true" tabindex="-1"></a><span class="fu">### Recorte territorial e precisão</span></span>
 <span id="cb31-722"><a href="#cb31-722" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-723"><a href="#cb31-723" aria-hidden="true" tabindex="-1"></a><span class="fu">### Regressão com desenho amostral</span></span>
-<span id="cb31-724"><a href="#cb31-724" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-727"><a href="#cb31-727" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb31-728"><a href="#cb31-728" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: regressao</span></span>
-<span id="cb31-729"><a href="#cb31-729" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: sequência de modelos com svyglm e gráfico de coeficientes</span></span>
-<span id="cb31-730"><a href="#cb31-730" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb31-731"><a href="#cb31-731" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-732"><a href="#cb31-732" aria-hidden="true" tabindex="-1"></a><span class="fu">## 9. Seu indicador</span></span>
-<span id="cb31-733"><a href="#cb31-733" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-734"><a href="#cb31-734" aria-hidden="true" tabindex="-1"></a>*Espaço para o indicador criado na atividade do Dia 2.*</span>
-<span id="cb31-735"><a href="#cb31-735" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-738"><a href="#cb31-738" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb31-739"><a href="#cb31-739" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: seu-indicador</span></span>
-<span id="cb31-740"><a href="#cb31-740" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: indicador criado pela dupla</span></span>
-<span id="cb31-741"><a href="#cb31-741" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb31-725"><a href="#cb31-725" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb31-726"><a href="#cb31-726" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: territorio</span></span>
+<span id="cb31-727"><a href="#cb31-727" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: Brasil, UFs selecionadas e capital, resto da RM e interior,</span></span>
+<span id="cb31-728"><a href="#cb31-728" aria-hidden="true" tabindex="-1"></a><span class="co">#       com semáforo de CV</span></span>
+<span id="cb31-729"><a href="#cb31-729" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb31-730"><a href="#cb31-730" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-731"><a href="#cb31-731" aria-hidden="true" tabindex="-1"></a><span class="fu">### Testes de hipóteses</span></span>
+<span id="cb31-732"><a href="#cb31-732" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-735"><a href="#cb31-735" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb31-736"><a href="#cb31-736" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: testes</span></span>
+<span id="cb31-737"><a href="#cb31-737" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: teste t com desenho e qui-quadrado de Rao-Scott</span></span>
+<span id="cb31-738"><a href="#cb31-738" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb31-739"><a href="#cb31-739" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-740"><a href="#cb31-740" aria-hidden="true" tabindex="-1"></a><span class="fu">### Regressão com desenho amostral</span></span>
+<span id="cb31-741"><a href="#cb31-741" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-744"><a href="#cb31-744" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb31-745"><a href="#cb31-745" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: regressao</span></span>
+<span id="cb31-746"><a href="#cb31-746" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: sequência de modelos com svyglm e gráfico de coeficientes</span></span>
+<span id="cb31-747"><a href="#cb31-747" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb31-748"><a href="#cb31-748" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-749"><a href="#cb31-749" aria-hidden="true" tabindex="-1"></a><span class="fu">## 9. Seu indicador</span></span>
+<span id="cb31-750"><a href="#cb31-750" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-751"><a href="#cb31-751" aria-hidden="true" tabindex="-1"></a>*Espaço para o indicador criado na atividade do Dia 2.*</span>
+<span id="cb31-752"><a href="#cb31-752" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-755"><a href="#cb31-755" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb31-756"><a href="#cb31-756" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: seu-indicador</span></span>
+<span id="cb31-757"><a href="#cb31-757" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: indicador criado pela dupla</span></span>
+<span id="cb31-758"><a href="#cb31-758" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 </code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
