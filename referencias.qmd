@@ -6,7 +6,7 @@ title: "Referências"
 
 - IBGE. [Estatísticas de Gênero: indicadores sociais das mulheres no Brasil](https://www.ibge.gov.br/estatisticas/multidominio/genero/20163-estatisticas-de-genero-indicadores-sociais-das-mulheres-no-brasil.html). 3ª edição, 2024.
 - IBGE. [Pesquisa Nacional por Amostra de Domicílios Contínua](https://www.ibge.gov.br/estatisticas/sociais/trabalho/17270-pnad-continua.html).
-- Nações Unidas. [Conjunto Mínimo de Indicadores de Gênero (CMIG)](https://gender-data-hub-2-undesa.hub.arcgis.com/pages/indicators).
+- Nações Unidas. [Conjunto Mínimo de Indicadores de Gênero (CMIG)](https://unstats.un.org/unsd/demographic-social/gender/minset), com a [lista completa dos indicadores](https://unstats.un.org/unsd/demographic-social/gender/MinSet_ListIndicator_2023.pdf).
 
 ## Pacotes e ferramentas
 

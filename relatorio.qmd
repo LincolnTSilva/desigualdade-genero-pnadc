@@ -511,7 +511,24 @@ pnadc <- pnadc |>
 Duas classificações do trabalho principal das pessoas ocupadas:
 
 - **Setor de atividade** (CMIG 1.8): os 12 grupamentos de `VD4010` reunidos em agropecuária, indústria (que inclui a construção) e serviços. As atividades mal definidas ficam sem setor.
-- **Cargo gerencial** (CMIG 4.3): os subgrupos 11, 12 e 13 da classificação de ocupações, que reúnem dirigentes e gerentes de nível sênior e intermediário. O subgrupo 14 (gerentes de hotéis, restaurantes, comércio e outros serviços) fica de fora. É a definição que mais se aproxima do informativo: 39,5% de mulheres, contra 39,3% publicados. Com todo o grande grupo 1 (`VD4011 == 1`), o resultado seria 40,7%.
+- **Cargo gerencial** (CMIG 4.3): as ocupações de gerência sênior e intermediária, identificadas pelos dois primeiros dígitos do código da ocupação (`V4010`).
+
+#### Por que só parte dos diretores e gerentes
+
+O CMIG 4.3, que corresponde ao indicador 5.5.2 dos Objetivos de Desenvolvimento Sustentável, mede a presença de mulheres em posições de decisão. A Organização Internacional do Trabalho define essas posições pela Classificação Internacional Uniforme de Ocupações (CIUO-08, ou ISCO-08 em inglês). A classificação usada na PNAD Contínua, a COD, segue a mesma estrutura, de modo que os códigos são comparáveis.
+
+O grande grupo 1 dessa classificação, "Diretores e gerentes", tem quatro subgrupos:
+
+| Subgrupo | ISCO-08 | COD | Nível de gerência |
+|---|---|---|---|
+| 11 | Chief executives, senior officials and legislators | Diretores executivos, dirigentes da administração pública e membros do poder executivo e legislativo | Sênior e intermediária |
+| 12 | Administrative and commercial managers | Dirigentes administrativos e comerciais | Sênior e intermediária |
+| 13 | Production and specialized services managers | Dirigentes e gerentes de produção e operação | Sênior e intermediária |
+| 14 | Hospitality, retail and other services managers | Gerentes de hotéis, restaurantes, comércio e outros serviços | Júnior |
+
+O indicador considera os subgrupos **11, 12 e 13**, que reúnem a gerência sênior e intermediária: quem dirige organizações, define políticas e coordena áreas inteiras. O subgrupo **14** fica de fora porque é classificado como gerência júnior: reúne gerentes de estabelecimentos pequenos, como lojas, restaurantes e pousadas, que em geral acumulam a gerência com a operação do dia a dia e têm autonomia de decisão mais limitada.
+
+A distinção importa para a análise de gênero. Como as mulheres estão mais presentes na gerência de comércio e serviços, incluir o subgrupo 14 aumentaria a participação feminina medida, sem que isso refletisse maior acesso aos postos onde as decisões de maior alcance são tomadas.
 
 ```{r}
 #| label: setor-cargo
