@@ -19,16 +19,33 @@ code-links:
 ## Como usar este relatório
 Com `gerar_base: false` (padrão), o relatório lê dois arquivos publicados no Zenodo: a base do curso, com o `readr`, e o desenho amostral, com o `readRDS()`. Se os arquivos já estiverem na pasta `dados`, eles são lidos de lá. Os blocos que geram a base e o desenho a partir dos microdados do IBGE aparecem no relatório, mas só são executados com `gerar_base: true`.
 
-O relatório leva alguns minutos para ser gerado, porque cada estimativa com o desenho amostral (blocos 6 a 9) calcula o erro-padrão com toda a amostra.
+O relatório leva alguns minutos para ser gerado, porque cada estimativa com o desenho amostral (blocos 6 a 9) calcula o erro-padrão com toda a amostra. Por isso, os blocos mais demorados usam **cache**: na primeira vez, o resultado é calculado e guardado na pasta `relatorio_cache`; nas seguintes, é só lido de lá. Um bloco com cache é calculado de novo quando o seu código muda, quando um parâmetro muda ou quando o arquivo do desenho é gerado de novo. Para recalcular tudo, basta apagar a pasta `relatorio_cache`.
 :::
 
 ## 1. Enquadramento
 
-*Texto a desenvolver:* indicadores de desigualdade de gênero, o CMIG e o ODS 5. A PNAD Contínua registra o sexo em duas categorias: os indicadores comparam mulheres e homens.
+Um indicador de desigualdade de gênero compara a situação de mulheres e homens numa mesma dimensão da vida: o trabalho, a renda, a educação, o tempo dedicado aos cuidados. Ele pode medir a distância entre os dois grupos, como a razão entre os rendimentos, ou a presença das mulheres num espaço, como a participação nos cargos gerenciais.
+
+A referência internacional é o **Conjunto Mínimo de Indicadores de Gênero** (CMIG), aprovado pela Comissão de Estatística das Nações Unidas. Ele reúne 51 indicadores quantitativos e 11 qualitativos, organizados em cinco dimensões: estruturas econômicas e acesso a recursos; educação; saúde; vida pública e tomada de decisão; e direitos humanos de mulheres e meninas. Vários deles acompanham o **Objetivo de Desenvolvimento Sustentável 5** (igualdade de gênero), como o tempo dedicado ao trabalho doméstico e de cuidados não remunerado (meta 5.4) e a presença de mulheres em posições de decisão (meta 5.5).
+
+No Brasil, o IBGE publica os indicadores do CMIG na série *Estatísticas de Gênero: indicadores sociais das mulheres no Brasil*. Este relatório reproduz parte desses indicadores com os microdados da PNAD Contínua e acrescenta medidas de precisão e desagregações por UF.
+
+::: {.callout-important}
+## Sexo e gênero na PNAD Contínua
+A PNAD Contínua registra o sexo da pessoa em duas categorias, homem e mulher. Os indicadores deste relatório comparam esses dois grupos e não permitem analisar identidade de gênero ou orientação sexual, que exigem outras fontes.
+:::
 
 ## 2. Conhecendo a PNAD Contínua
 
-*Texto a desenvolver:* desenho amostral, arquivo anual da `r params$visita`ª visita, questionário, dicionário e domínios de estimação.
+A Pesquisa Nacional por Amostra de Domicílios Contínua (PNAD Contínua) é a principal pesquisa domiciliar do IBGE sobre trabalho e rendimento. Ela vai a campo desde 2012, durante todo o ano, e investiga as características das pessoas, a educação, o trabalho e o rendimento, além de temas complementares.
+
+**O desenho amostral.** A amostra é selecionada em dois estágios, dentro de estratos geográficos. No primeiro, são sorteadas as unidades primárias de amostragem (UPAs), formadas por setores censitários. No segundo, são sorteados domicílios em cada UPA, e todos os moradores são entrevistados. Cada pessoa recebe um **peso**, que diz quantas pessoas da população ela representa. O bloco 6 volta a esse desenho para medir a precisão das estimativas.
+
+**As visitas.** Cada domicílio é entrevistado cinco vezes, uma por trimestre. Além da divulgação trimestral, o IBGE publica arquivos anuais que reúnem as entrevistas de uma mesma visita ao longo do ano. Este relatório usa o arquivo anual da `r params$visita`ª visita, pelo motivo explicado no quadro abaixo.
+
+**Questionário e dicionário.** O questionário mostra as perguntas como foram feitas, e a quem cada uma se aplica. O dicionário, publicado para cada ano e visita, dá o nome de cada variável no arquivo, as suas categorias e os seus códigos. As variáveis cujo nome começa com `VD` são **variáveis derivadas**, construídas pelo IBGE a partir de várias perguntas, como a condição de ocupação e o nível de instrução.
+
+**Domínios de estimação.** A amostra é planejada para produzir estimativas com precisão controlada para o Brasil, as grandes regiões, as UFs, as capitais e as regiões metropolitanas. Recortes menores que esses, ou cruzamentos de várias características, podem ter poucas pessoas na amostra. O bloco 8 mostra como identificar esses casos pelo coeficiente de variação.
 
 ::: {.callout-important}
 ## Por que a 5ª visita
@@ -1525,6 +1542,8 @@ No desenho, cada UF é um **domínio**. Um `filter()` no desenho não apaga as p
 
 ```{r}
 #| label: participacao-desenho
+#| cache: true
+#| cache.extra: !expr list(params, file.mtime(arquivo_desenho))
 
 # Estimativa com erro-padrão, intervalo de confiança e CV, por sexo
 estima_participacao <- function(desenho) {
@@ -1593,6 +1612,8 @@ Na seção "Os estimadores", a taxa foi escrita como a razão entre dois totais:
 
 ```{r}
 #| label: taxa-como-razao
+#| cache: true
+#| cache.extra: !expr list(params, file.mtime(arquivo_desenho))
 
 desenho |>
   group_by(sexo) |>
@@ -1815,6 +1836,8 @@ As duas taxas usam a função `taxa_sexo()`. O `filter()` define o denominador, 
 
 ```{r}
 #| label: ind-trabalho
+#| cache: true
+#| cache.extra: !expr list(params, file.mtime(arquivo_desenho))
 
 taxas_trabalho <- bind_rows(
   desenho |>
@@ -1860,6 +1883,8 @@ A média de horas (1.1) se refere a quem realizou cuidados ou afazeres, porque s
 
 ```{r}
 #| label: ind-afazeres
+#| cache: true
+#| cache.extra: !expr list(params, file.mtime(arquivo_desenho))
 
 horas_afazeres <- desenho |>
   filter(V2009 >= 14, !is.na(V4121B)) |>
@@ -1882,6 +1907,8 @@ O rendimento domiciliar per capita não é informado para quem mora no domicíli
 
 ```{r}
 #| label: ind-afazeres-quinto
+#| cache: true
+#| cache.extra: !expr list(params, file.mtime(arquivo_desenho))
 
 # Limites dos quintos: os valores em que a soma acumulada dos pesos
 # atinge 20%, 40%, 60% e 80% da população com rendimento informado
@@ -2003,6 +2030,8 @@ A razão é calculada para o Brasil e para as UFs escolhidas (com a UF como grup
 
 ```{r}
 #| label: ind-rendimento
+#| cache: true
+#| cache.extra: !expr list(params, file.mtime(arquivo_desenho))
 
 grupos_ocupacionais <- c(
   'Diretores e gerentes',
@@ -2076,6 +2105,8 @@ O IC é calculado na escala logit, pela função `ic_logit()`, a mesma conta do 
 
 ```{r}
 #| label: ind-educacao
+#| cache: true
+#| cache.extra: !expr list(params, file.mtime(arquivo_desenho))
 
 # Distribuição por nível de instrução, por sexo, num desenho já recortado
 distribuicao_instrucao <- function(desenho) {
@@ -2221,6 +2252,8 @@ A taxa de desocupação é calculada por sexo e por tipo de área (`territorio`:
 
 ```{r}
 #| label: territorio
+#| cache: true
+#| cache.extra: !expr list(params, file.mtime(arquivo_desenho))
 
 semaforo_cv <- function(cv) {
   case_when(
@@ -2272,25 +2305,36 @@ Os testes também precisam do desenho amostral. Um teste que trata a amostra com
 
 #### Teste t: a diferença entre duas médias
 
+Os testes são feitos para o Brasil e para cada UF escolhida. A função abaixo devolve o desenho de um recorte. Como os testes não usam `group_by()`, a UF pode ser recortada com `filter()`.
+
+```{r}
+#| label: desenho-recorte
+
+# O desenho do Brasil inteiro ou de uma UF escolhida, pelo nome do recorte
+desenho_do_recorte <- function(recorte) {
+  if (recorte == 'Brasil') {
+    return(desenho)
+  }
+  uf <- ufs_escolhidas$UF[ufs_escolhidas$nome_uf == recorte]
+  desenho |>
+    filter(UF == uf)
+}
+```
+
 O `svyttest()` compara a média de horas em cuidados e afazeres de mulheres e homens. O resultado é a diferença entre as médias (mulheres menos homens), com o intervalo de confiança e o valor-p.
 
 ```{r}
 #| label: teste-t
+#| cache: true
+#| cache.extra: !expr list(params, file.mtime(arquivo_desenho))
 #| warning: false
 
 # warning: false esconde um aviso inofensivo: o svyglm() (usado também
 # pelo svyttest()) informa que ignorou as pessoas com peso zero deixadas
 # pelo filter()
 
-# Desenho de cada recorte: o Brasil inteiro e cada UF escolhida
-desenhos_recortes <- c(
-  list(Brasil = desenho),
-  lapply(ufs_escolhidas$UF, \(uf) filter(desenho, UF == uf)) |>
-    setNames(ufs_escolhidas$nome_uf)
-)
-
-teste_horas <- lapply(names(desenhos_recortes), \(nome) {
-  teste <- desenhos_recortes[[nome]] |>
+teste_horas <- lapply(levels(pnadc_recortes$recorte), \(nome) {
+  teste <- desenho_do_recorte(nome) |>
     filter(V2009 >= 14, !is.na(V4121B)) |>
     svyttest(V4121B ~ sexo, design = _)
 
@@ -2324,9 +2368,11 @@ O teste qui-quadrado verifica se duas variáveis categóricas são independentes
 
 ```{r}
 #| label: teste-qui-quadrado
+#| cache: true
+#| cache.extra: !expr list(params, file.mtime(arquivo_desenho))
 
-teste_setor <- lapply(names(desenhos_recortes), \(nome) {
-  teste <- desenhos_recortes[[nome]] |>
+teste_setor <- lapply(levels(pnadc_recortes$recorte), \(nome) {
+  teste <- desenho_do_recorte(nome) |>
     filter(ocupada == 1, !is.na(setor)) |>
     svychisq(~sexo + setor, design = _)
 
@@ -2366,6 +2412,9 @@ O `svyglm()` ajusta a regressão levando em conta o desenho: os coeficientes usa
 
 ```{r}
 #| label: regressao
+#| cache: true
+#| cache.extra: !expr list(params, file.mtime(arquivo_desenho))
+#| cache.vars: 'coeficientes'
 #| warning: false
 
 # warning: false esconde um aviso inofensivo: o svyglm() (usado também
@@ -2478,6 +2527,8 @@ O exemplo abaixo mostra o caminho completo com um indicador de trabalho decente 
 - **Desagregação:** sexo, Brasil e UFs escolhidas
 - **Comparação a testar:** a taxa das mulheres é diferente da dos homens?
 :::
+
+Este bloco não usa cache, porque é o bloco que muda durante a atividade: a cada renderização, ele é sempre calculado de novo.
 
 Uma variável nova pode ser criada direto no desenho, com `mutate()`, como numa base comum. Não é preciso gerar o desenho de novo: isso só é necessário quando muda o bloco 4.
 
