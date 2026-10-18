@@ -51,7 +51,7 @@ library(tidyverse)
 #| label: leitura
 #| eval: false
 
-# Código a desenvolver: leitura da base preparada (.rds)
+# Código a desenvolver: leitura da base preparada (.csv.gz)
 ```
 
 ## 4. Recodificação e variáveis derivadas

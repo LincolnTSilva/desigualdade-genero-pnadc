@@ -19,7 +19,7 @@ Depois de baixar, abra o arquivo no RStudio e clique em **Render**. Os dados sã
 
 ## Ficha de indicador
 
-Modelo para a atividade do bloco 9, disponível no [material do Dia 2](dia2.qmd#atividade-um-indicador-novo).
+Modelo para a atividade do bloco 9, disponível no [material do Dia 2](dia2.qmd#atividade-um-indicador-novo). O bloco 9 do [relatório](relatorio.qmd) traz a ficha preenchida com um exemplo e o código completo, para servir de ponto de partida.
 
 ## Dicionário resumido
 

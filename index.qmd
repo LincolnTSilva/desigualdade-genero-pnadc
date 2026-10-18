@@ -50,7 +50,7 @@ Começamos pelo fim: na abertura, você vê o relatório pronto. Nos dois dias, 
 
 1. Localizar no questionário e no dicionário da PNAD Contínua as variáveis de um indicador.
 2. Recodificar variáveis e construir variáveis derivadas da pessoa e do domicílio.
-3. Aplicar o desenho amostral e os pesos com o pacote srvyr.
+3. Aplicar o desenho amostral e os pesos com os pacotes `srvyr` e `survey`.
 4. Calcular taxas, médias e razões entre grupos, com intervalo de confiança e coeficiente de variação.
 5. Desagregar indicadores por idade, cor ou raça, escolaridade e território, avaliando a precisão.
 6. Testar diferenças entre grupos e interpretar uma regressão com desenho amostral.

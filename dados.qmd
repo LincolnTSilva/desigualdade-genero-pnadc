@@ -11,7 +11,7 @@ O curso usa dois arquivos, publicados no Zenodo e lidos diretamente pelo [relat�
 | Arquivo | Conteúdo | Usado em |
 |---|---|---|
 | Base do curso (`.csv.gz`) | Versão reduzida dos microdados, com as variáveis usadas no curso, em códigos. Mantém todas as pessoas da amostra e as variáveis do desenho amostral | Cálculos com o `dplyr` (blocos 4 e 5), lida com o `readr` |
-| Desenho amostral (`.rds`) | O desenho com a calibração refeita, já com as variáveis derivadas do bloco 4. Criá-lo leva alguns minutos; em sala, ele é só lido | Estimativas com precisão no `srvyr` (blocos 6 a 8), lido com `readRDS()` |
+| Desenho amostral (`.rds`) | O desenho com a calibração refeita, já com as variáveis derivadas do bloco 4. Criá-lo leva alguns minutos; em sala, ele é só lido | Estimativas com precisão, testes e regressão (blocos 6 a 9), lido com `readRDS()` |
 
 *Os links do Zenodo serão disponibilizados aqui.*
 
