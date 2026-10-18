@@ -43,11 +43,6 @@ library(srvyr)
 # Código a desenvolver: leitura do desenho amostral calibrado (.rds)
 ```
 
-::: {.callout-warning}
-## Erro comum
-Filtrar o data frame antes de criar o desenho produz erros-padrão incorretos. O recorte deve ser feito no desenho.
-:::
-
 ```{r}
 #| label: dplyr-vs-srvyr
 #| eval: false
