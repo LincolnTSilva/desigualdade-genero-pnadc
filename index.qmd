@@ -34,7 +34,7 @@ Começamos pelo fim: na abertura, você vê o relatório pronto. Nos dois dias, 
 ::: {.cartao}
 ### Dia 2: dos dados às conclusões
 
-- Desenho amostral com srvyr
+- Desenho amostral com `srvyr`
 - Reprodução do relatório
 - Comparações, testes e regressão
 - Atividade: um indicador novo
@@ -54,7 +54,7 @@ Começamos pelo fim: na abertura, você vê o relatório pronto. Nos dois dias, 
 4. Calcular taxas, médias e razões entre grupos, com intervalo de confiança e coeficiente de variação.
 5. Desagregar indicadores por idade, cor ou raça, escolaridade e território, avaliando a precisão.
 6. Testar diferenças entre grupos e interpretar uma regressão com desenho amostral.
-7. Comunicar os resultados em gráficos com ggplot2.
+7. Comunicar os resultados em gráficos com `ggplot2` e `plotly`.
 8. Reproduzir e atualizar um relatório em Quarto.
 
 ## Informações gerais
@@ -64,7 +64,8 @@ Começamos pelo fim: na abertura, você vê o relatório pronto. Nos dois dias, 
 | **Carga horária** | 6 horas, em 2 encontros de 3 horas |
 | **Local** | Laboratório de informática da universidade |
 | **Pré-requisito** | Alguma familiaridade com R |
-| **Ferramentas** | R, RStudio, Quarto, tidyverse, srvyr, survey e ggplot2 |
+| **Programas** | R, RStudio e Quarto |
+| **Pacotes do R** | `dplyr`, `tidyr`, `stringr`, `readr`, `ggplot2`, `plotly`, `survey`, `srvyr` e `PNADcIBGE` |
 | **Dados** | PNAD Contínua, arquivo anual da 5ª visita (IBGE) |
 
 ::: {.callout-tip}

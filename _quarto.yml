@@ -3,6 +3,8 @@ project:
   # Só as páginas .qmd viram site (deixa de fora arquivos de apoio)
   render:
     - "*.qmd"
+  # Copia o relatório .qmd para downloads/, para o link de download do relatório
+  post-render: _copia-downloads.R
 
 # Os cálculos rodam só na sua máquina; o site publica os resultados guardados
 execute:

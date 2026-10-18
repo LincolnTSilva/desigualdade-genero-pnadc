@@ -27,6 +27,7 @@ O segundo dia acrescenta a incerteza às estimativas, reproduz o relatório e te
 ```{r}
 #| label: leitura-dia1
 #| eval: false
+
 # Código a desenvolver: leitura da base recodificada ao final do Dia 1
 ```
 
@@ -37,6 +38,7 @@ O segundo dia acrescenta a incerteza às estimativas, reproduz o relatório e te
 ```{r}
 #| label: desenho
 #| eval: false
+
 library(srvyr)
 # Código a desenvolver: criação do desenho amostral
 ```
@@ -49,6 +51,7 @@ Filtrar o data frame antes de criar o desenho produz erros-padrão incorretos. O
 ```{r}
 #| label: dplyr-vs-srvyr
 #| eval: false
+
 # Código a desenvolver: a estimativa do Dia 1 refeita com srvyr
 ```
 
@@ -59,6 +62,7 @@ Filtrar o data frame antes de criar o desenho produz erros-padrão incorretos. O
 ```{r}
 #| label: indicadores
 #| eval: false
+
 # Código a desenvolver: taxa, média, razão e distribuição
 ```
 
@@ -69,6 +73,7 @@ Filtrar o data frame antes de criar o desenho produz erros-padrão incorretos. O
 ```{r}
 #| label: recortes
 #| eval: false
+
 # Código a desenvolver: Brasil, UFs e recorte capital, resto da RM e interior, com semáforo de CV
 ```
 
@@ -77,6 +82,7 @@ Filtrar o data frame antes de criar o desenho produz erros-padrão incorretos. O
 ```{r}
 #| label: testes
 #| eval: false
+
 # Código a desenvolver: teste t com desenho e qui-quadrado de Rao-Scott
 ```
 
@@ -85,6 +91,7 @@ Filtrar o data frame antes de criar o desenho produz erros-padrão incorretos. O
 ```{r}
 #| label: regressao
 #| eval: false
+
 # Código a desenvolver: sequência de modelos com svyglm e gráfico de coeficientes
 ```
 

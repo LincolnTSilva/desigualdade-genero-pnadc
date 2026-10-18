@@ -14,4 +14,5 @@ title: "Referências"
 - [srvyr](https://cran.r-project.org/package=srvyr): análise de amostras complexas com sintaxe do dplyr.
 - [survey](https://cran.r-project.org/package=survey): testes e regressão com desenho amostral.
 - [ggplot2](https://ggplot2.tidyverse.org): gráficos.
+- [plotly](https://plotly-r.com): gráficos interativos a partir do ggplot2.
 - [Quarto](https://quarto.org): relatórios e sites reprodutíveis.

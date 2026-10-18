@@ -43,12 +43,14 @@ A PNAD Contínua registra o sexo da pessoa em duas categorias. Os indicadores do
 ```{r}
 #| label: pacotes
 #| eval: false
+
 library(tidyverse)
 ```
 
 ```{r}
 #| label: leitura
 #| eval: false
+
 # Código a desenvolver: leitura da base preparada (.rds)
 ```
 
@@ -59,6 +61,7 @@ library(tidyverse)
 ```{r}
 #| label: recodificacao
 #| eval: false
+
 # Código a desenvolver: recodificações e variáveis derivadas
 ```
 
@@ -67,6 +70,7 @@ library(tidyverse)
 ```{r}
 #| label: variavel-domicilio
 #| eval: false
+
 # Código a desenvolver: variável construída no nível do domicílio
 ```
 
@@ -79,6 +83,7 @@ library(tidyverse)
 ## Gabarito do exercício 1
 ```{r}
 #| eval: false
+
 # Solução a desenvolver
 ```
 :::
@@ -90,6 +95,7 @@ library(tidyverse)
 ```{r}
 #| label: estimativa-sem-peso
 #| eval: false
+
 # Código a desenvolver: estimativa sem peso
 ```
 
@@ -101,12 +107,14 @@ Calcular médias e proporções sem o peso amostral produz estimativas que não 
 ```{r}
 #| label: estimativa-com-peso
 #| eval: false
+
 # Código a desenvolver: estimativa com peso
 ```
 
 ```{r}
 #| label: grafico-inicial
 #| eval: false
+
 # Código a desenvolver: gráfico de mulheres e homens com ggplot2
 ```
 
@@ -115,6 +123,7 @@ Calcular médias e proporções sem o peso amostral produz estimativas que não 
 ```{r}
 #| label: salvar-base
 #| eval: false
+
 # Código a desenvolver: salvar a base recodificada, que é o ponto de partida do Dia 2
 ```
 

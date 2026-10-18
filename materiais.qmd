@@ -13,6 +13,10 @@ title: "Materiais"
 
 [Relatório em Quarto](relatorio.qmd), parametrizado por ano e por uma lista de UFs, com os indicadores do curso.
 
+[<i class="bi bi-download"></i> Baixar o relatório (.qmd)](downloads/relatorio.qmd){.btn .btn-primary}
+
+Depois de baixar, abra o arquivo no RStudio e clique em **Render**. Os dados são lidos do Zenodo, pelos links indicados nos parâmetros do cabeçalho.
+
 ## Ficha de indicador
 
 Modelo para a atividade do bloco 9, disponível no [material do Dia 2](dia2.qmd#atividade-um-indicador-novo).
@@ -27,14 +31,16 @@ As variáveis da PNAD Contínua usadas no curso, com nome, descrição e categor
 
 | Indicador (código CMIG) | Tipo | Papel no curso |
 |---|---|---|
-| Taxa de participação na força de trabalho (1.8) | Taxa | Núcleo |
+| Taxa de participação na força de trabalho (1.3) | Taxa | Núcleo |
 | Taxa de desocupação (1.10) | Taxa | Núcleo |
-| Proporção de ocupados informais (1.9) | Proporção | Núcleo |
+| Informalidade no trabalho não agrícola (1.9) | Taxa | Núcleo |
 | Rendimento médio e razão entre mulheres e homens por grupo ocupacional (1.13) | Média e razão | Núcleo |
 | Nível de instrução da população de 25 anos ou mais (2.11) | Distribuição | Núcleo |
 | Horas semanais em cuidados de pessoas e afazeres domésticos (1.1) | Média | Núcleo |
-| Nível de ocupação de 25 a 54 anos, com e sem criança de até 6 anos (1.15) | Proporção | Exercício |
-| Ocupação em tempo parcial (1.14) | Proporção | Exercício |
-| Mulheres em cargos gerenciais (5.3) | Proporção | Exercício |
-| Jovens de 15 a 24 anos que não estudam nem estão ocupados (1.7) | Proporção | Exercício |
+| Nível de ocupação de 25 a 54 anos, com e sem criança de até 6 anos (1.15) | Taxa | Exercício |
+| Ocupação em tempo parcial (1.14) | Taxa | Exercício |
+| Mulheres em cargos gerenciais (4.3) | Taxa | Exercício |
+| Jovens de 15 a 24 anos que não estudam nem estão ocupados (1.7) | Taxa | Exercício |
 | Frequência escolar de 15 a 17 anos (2.3) | Taxa | Exercício |
+
+A lista completa, com numerador e denominador de cada indicador, está na seção "Das variáveis aos indicadores" do [relatório](relatorio.qmd).

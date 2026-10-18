@@ -7,8 +7,12 @@ params:
   ufs: ["RJ"]
   gerar_base: false
   url_base: ""
-  url_replicas: ""
+  url_desenho: ""
 code-tools: true
+code-links:
+  - text: "Baixar o relatório (.qmd)"
+    icon: download
+    href: downloads/relatorio.qmd
 ---
 
 ::: {.callout-note}
@@ -24,17 +28,58 @@ Com `gerar_base: false` (padrão), a base do curso é lida do Zenodo com o `read
 
 *Texto a desenvolver:* desenho amostral, arquivo anual da `r params$visita`ª visita, questionário, dicionário e domínios de estimação.
 
+::: {.callout-important}
+## Por que a 5ª visita
+
+Cada domicílio da PNAD Contínua é entrevistado cinco vezes, uma por trimestre. As perguntas básicas sobre as pessoas, a educação e o trabalho se repetem em todas as entrevistas. Já os temas complementares são investigados só em uma visita específica.
+
+O relatório usa o arquivo anual da **5ª visita** por um motivo: é nela que o IBGE investiga as **outras formas de trabalho**, o módulo que traz os cuidados de pessoas e os afazeres domésticos. Sem esse módulo, não há como medir o trabalho não remunerado, que é uma das dimensões centrais da desigualdade de gênero.
+
+A escolha tem duas consequências:
+
+- **Uma única base cobre todos os indicadores do curso**, do mercado de trabalho aos afazeres, para as mesmas pessoas.
+- **Os resultados de trabalho e de educação podem diferir um pouco** das divulgações trimestrais e do módulo anual de educação, que usam outros arquivos da pesquisa.
+
+**Em 2020 e 2021, o módulo não foi investigado.** Por causa da pandemia de COVID-19, o IBGE suspendeu a investigação das outras formas de trabalho nesses dois anos e a retomou em 2022. O arquivo da 5ª visita de 2020 e de 2021 existe, mas sem as perguntas sobre cuidados e afazeres. Por isso, este relatório não pode ser gerado para esses dois anos: a checagem de variáveis do bloco 3 interrompe a execução e informa quais variáveis faltam.
+
+Ao trocar o ano do relatório, vale sempre conferir no dicionário daquele ano se o módulo está na 5ª visita.
+:::
+
 ## 3. O projeto e os dados
 
 ### Parâmetros
 
 O ano, a visita e as UFs vêm do cabeçalho do relatório.
 
+Nem todo ano pode ser usado. O módulo de cuidados e afazeres domésticos é investigado na 5ª visita desde 2016, e não foi a campo em 2020 e 2021. A lista `anos_disponiveis` reúne os anos em que os microdados da 5ª visita foram publicados com o módulo. O bloco abaixo confere os parâmetros antes de qualquer cálculo e interrompe o relatório, com uma mensagem clara, se o ano ou a visita não servirem. Quando o IBGE publicar um novo ano, basta acrescentá-lo à lista.
+
 ```{r}
 #| label: parametros
+
 ano    <- params$ano
 visita <- params$visita
 ufs    <- params$ufs
+
+# O módulo de outras formas de trabalho só existe na 5ª visita
+if (visita != 5) {
+  stop(
+    'Este relatório usa a 5ª visita, a única com o módulo de cuidados e ',
+    'afazeres domésticos. Visita informada: ', visita, '.',
+    call. = FALSE
+  )
+}
+
+# Anos com a 5ª visita publicada e com o módulo de cuidados e afazeres.
+# Ficam de fora 2020 e 2021, quando o módulo não foi investigado (pandemia).
+anos_disponiveis <- c(2016, 2017, 2018, 2019, 2022, 2023, 2024)
+
+if (!ano %in% anos_disponiveis) {
+  stop(
+    'O ano ', ano, ' não pode ser usado. Anos disponíveis: ',
+    paste(anos_disponiveis, collapse = ', '), '.',
+    call. = FALSE
+  )
+}
 
 pasta_dados <- 'dados'
 
@@ -44,6 +89,10 @@ arquivo_base <- file.path(
 
 arquivo_replicas <- file.path(
   pasta_dados, sprintf('pnadc_%d_visita%d_replicas.csv.gz', ano, visita)
+)
+
+arquivo_desenho <- file.path(
+  pasta_dados, sprintf('pnadc_%d_visita%d_desenho.rds', ano, visita)
 )
 ```
 
@@ -59,12 +108,14 @@ O relatório usa os pacotes abaixo. O `pacman` carrega todos de uma vez e instal
 | `tidyr` | Reorganiza tabelas, por exemplo passando resultados de formato longo para largo na hora de montar tabelas |
 | `stringr` | Trata textos, como rótulos de categorias e nomes de variáveis |
 | `ggplot2` | Constrói os gráficos, camada por camada, a partir de uma tabela de resultados |
+| `plotly` | Transforma um gráfico do `ggplot2` em gráfico interativo com `ggplotly()`: passar o mouse mostra os valores, e dá para ampliar e esconder séries |
 | `survey` | Implementa a análise de amostras complexas: desenho amostral, pós-estratificação, testes (`svyttest`, `svychisq`) e regressão (`svyglm`) |
 | `srvyr` | Traz a sintaxe do `dplyr` para o `survey`: `group_by()` e `summarise()` com `survey_mean()`, `survey_prop()` e `survey_ratio()`, que devolvem estimativa, intervalo de confiança e CV |
 | `PNADcIBGE` | Baixa e lê os microdados da PNAD Contínua direto do IBGE. Usado só na geração da base (`gerar_base: true`) |
 
 ```{r}
 #| label: pacotes
+
 # Repositório do CRAN para instalar pacotes caso necessário
 options(repos = c(CRAN = 'https://cloud.r-project.org'))
 
@@ -72,7 +123,9 @@ if(!require(pacman)) {
   install.packages('pacman')
 }
 
-pacman::p_load(dplyr, tidyr, stringr, ggplot2, readr, survey, srvyr, PNADcIBGE)
+pacman::p_load(
+  dplyr, tidyr, stringr, ggplot2, plotly, readr, survey, srvyr, PNADcIBGE
+)
 ```
 
 ### Seleção de variáveis
@@ -88,10 +141,8 @@ As variáveis estão agrupadas por tema. Os mesmos grupos são usados adiante, p
 | Chave | `V1014` | Painel (grupo de amostra) | 01 a 99 |
 | Chave | `V2003` | Número de ordem da pessoa no domicílio | 01 a 30 |
 | Localização | `UF` | Unidade da Federação | Código IBGE da UF (33 = Rio de Janeiro) |
-| Localização | `Capital` | Município da capital | Código da UF da capital (33 = município do Rio de Janeiro) |
-| Localização | `RM_RIDE` | Região metropolitana ou RIDE | Código da UF da região (33 = RM do Rio de Janeiro) |
 | Localização | `V1022` | Situação do domicílio | 1 Urbana; 2 Rural |
-| Localização | `V1023` | Tipo de área | 1 Capital; 2 Resto da RM; 3 Resto da RIDE; 4 Resto da UF |
+| Localização | `V1023` | Tipo de área. Junto com a `UF`, identifica a capital e a região metropolitana de cada UF | 1 Capital; 2 Resto da RM; 3 Resto da RIDE; 4 Resto da UF |
 | Desenho | `Estrato` | Estrato de seleção da amostra | As 2 primeiras posições são o código da UF |
 | Desenho | `ID_DOMICILIO` | Identificação do domicílio, a unidade do 2º estágio da amostra. Criada pelo `PNADcIBGE` na leitura | `UPA` + `V1008` + `V1014` |
 | Desenho | `V1031` | Peso da 5ª visita **sem** calibração pela projeção de população | Com correção de não entrevista |
@@ -125,15 +176,17 @@ As variáveis estão agrupadas por tema. Os mesmos grupos são usados adiante, p
 | Afazeres | `V4121B` | Total de horas semanais dedicadas a cuidados de pessoas e/ou afazeres domésticos | 1 a 120 horas |
 | Réplicas | `V1032001` a `V1032200` | Pesos replicados (bootstrap) da 5ª visita, com calibração | Arquivo separado |
 
-: Fonte: IBGE, dicionário das variáveis da PNAD Contínua, 5ª visita de 2022. Nas variáveis com "Não aplicável", o valor fica vazio (`NA`) para as pessoas fora do público da pergunta, por exemplo menores de 14 anos nas variáveis de trabalho.
+: Fonte: IBGE, dicionário das variáveis da PNAD Contínua, 5ª visita. As descrições seguem o dicionário de 2022, usado como referência. Nas variáveis com "Não aplicável", o valor fica vazio (`NA`) para as pessoas fora do público da pergunta, por exemplo menores de 14 anos nas variáveis de trabalho.
 
 ```{r}
 #| label: variaveis
+
 # Identificação da pessoa: chave para juntar a base principal e as réplicas
 vars_chave <- c('Ano', 'Trimestre', 'UPA', 'V1008', 'V1014', 'V2003')
 
 # Localização
-vars_local <- c('UF', 'Capital', 'RM_RIDE', 'V1022', 'V1023')
+# Capital e RM_RIDE não entram: a UF com a V1023 (tipo de área) já as identifica
+vars_local <- c('UF', 'V1022', 'V1023')
 
 # Desenho amostral (linearização com calibração por área geográfica e por sexo e idade)
 vars_desenho <- c(
@@ -168,7 +221,7 @@ vars_curso <- c(
 
 ### Geração da base a partir dos microdados
 
-Executado só com `gerar_base: true`. Gera os dois arquivos `.csv.gz` que são publicados no Zenodo. Em sala, só a base principal é usada; o arquivo de pesos replicados fica disponível para quem quiser reproduzir a precisão oficial (veja a comparação de métodos no bloco 6).
+Executado só com `gerar_base: true`. Gera a base do curso em `.csv.gz`, publicada no Zenodo e usada em todo o relatório, e o arquivo de pesos replicados, usado só na comparação de métodos do bloco 6. O desenho amostral é gerado e gravado no bloco 6, porque depende das variáveis criadas no bloco 4.
 
 ```{r}
 #| label: leitura-microdados
@@ -176,6 +229,7 @@ Executado só com `gerar_base: true`. Gera os dois arquivos `.csv.gz` que são p
 #| cache: true
 #| cache.extra: !expr list(params$ano, params$visita, vars_curso, vars_replicas)
 #| 
+
 pnadc <- get_pnadc(
   year      = ano,
   interview = visita,
@@ -189,6 +243,7 @@ pnadc <- get_pnadc(
 ```{r}
 #| label: checagem-variaveis
 #| eval: !expr params$gerar_base
+
 vars_pedidas <- c(vars_curso, vars_replicas)
 faltando     <- setdiff(vars_pedidas, names(pnadc))
 
@@ -210,6 +265,7 @@ if (length(extras) > 0) {
 ```{r}
 #| label: checagem-chave
 #| eval: !expr params$gerar_base
+
 # A chave não pode ter valores ausentes...
 chave_com_na <- pnadc |>
   filter(if_any(all_of(vars_chave), is.na)) |>
@@ -247,6 +303,7 @@ cat(
 ```{r}
 #| label: checagem-pesos
 #| eval: !expr params$gerar_base
+
 # O peso calibrado deve existir e ser positivo para todas as pessoas
 if (anyNA(pnadc$V1032) || any(pnadc$V1032 <= 0)) {
   stop('V1032 tem valores ausentes ou não positivos.', call. = FALSE)
@@ -299,6 +356,7 @@ if (!all(comparacao$confere, na.rm = TRUE)) {
 ```{r}
 #| label: gravacao
 #| eval: !expr params$gerar_base
+
 dir.create(pasta_dados, showWarnings = FALSE, recursive = TRUE)
 
 # A extensão .gz faz o readr compactar o arquivo automaticamente.
@@ -316,6 +374,7 @@ pnadc |>
 
 ```{r}
 #| label: leitura-base
+
 # Tipos das colunas: sem essa definição, o readr adivinha e erra nos dois
 # sentidos (identificadores viram número; códigos com zero à esquerda viram texto)
 vars_texto <- c(
@@ -329,33 +388,40 @@ tipos$cols[vars_texto]    <- list(col_character())
 tipos$cols[vars_decimais] <- list(col_double())
 
 # Arquivo local, se existir; senão, o link do Zenodo
-if (file.exists(arquivo_base)) {
-  origem <- arquivo_base
-} else if (nzchar(params$url_base)) {
-  # O link do Zenodo termina em '?download=1': baixar para um arquivo
-  # temporário com extensão .csv.gz, para o readr reconhecer a compactação
-  origem <- tempfile(fileext = '.csv.gz')
-  download.file(params$url_base, origem, mode = 'wb', quiet = TRUE)
-} else {
+localiza_arquivo <- function(arquivo, url) {
+  if (file.exists(arquivo)) {
+    return(arquivo)
+  }
+  if (nzchar(url)) {
+    # O link do Zenodo termina em '?download=1': baixar para um arquivo
+    # temporário com a mesma extensão do original (.csv.gz ou .rds)
+    extensao <- sub('^[^.]*', '', basename(arquivo))
+    temporario <- tempfile(fileext = extensao)
+    download.file(url, temporario, mode = 'wb', quiet = TRUE)
+    return(temporario)
+  }
   stop(
-    'Base não encontrada em ', arquivo_base,
-    ' e o parâmetro url_base está vazio.',
+    'Arquivo não encontrado em ', arquivo, ' e o link do Zenodo está vazio.',
     call. = FALSE
   )
 }
 
+# Qualquer valor que não coube no tipo definido vira NA com aviso: melhor parar
+confere_leitura <- function(dados) {
+  if (nrow(problems(dados)) > 0) {
+    print(problems(dados))
+    stop('Problemas na leitura: veja a tabela acima.', call. = FALSE)
+  }
+}
+
+# Base principal
 pnadc <- read_csv(
-  origem,
+  localiza_arquivo(arquivo_base, params$url_base),
   col_types = tipos,
   col_select = all_of(vars_curso),
   progress = FALSE
 )
-
-# Qualquer valor que não coube no tipo definido vira NA com aviso: melhor parar
-if (nrow(problems(pnadc)) > 0) {
-  print(problems(pnadc))
-  stop('Problemas na leitura da base: veja a tabela acima.', call. = FALSE)
-}
+confere_leitura(pnadc)
 
 cat(
   'Base lida:', format(nrow(pnadc), big.mark = '.', decimal.mark = ','),
@@ -366,6 +432,14 @@ cat(
 ## 4. Recodificação e variáveis derivadas
 
 A base guarda os códigos da PNAD. Aqui eles viram as categorias usadas nos indicadores, seguindo os agrupamentos da publicação *Estatísticas de Gênero* do IBGE. As variáveis originais continuam na base; as derivadas ganham nomes em português.
+
+As variáveis derivadas de dois tipos de resposta, sim ou não, são criadas como **dummies**:
+
+- **1** para quem tem a característica;
+- **0** para quem não tem;
+- **NA** para quem está fora da população a que a pergunta se aplica. Por exemplo, a informalidade só se aplica a quem está ocupado.
+
+Com dummies, um total estimado é a soma dos pesos multiplicados pela dummy, como nas fórmulas do bloco 5.
 
 ### Características da pessoa e do território
 
@@ -379,11 +453,12 @@ A base guarda os códigos da PNAD. Aqui eles viram as categorias usadas nos indi
 | `territorio` | `V1023` | Capital; Resto da RM; Interior (resto da RIDE e resto da UF) |
 | `situacao` | `V1022` | Urbana; Rural |
 | `condicao_atividade` | `V2009`, `VD4001`, `VD4002` | Menos de 14 anos; Fora da força de trabalho; Ocupada; Desocupada |
-| `realizou_cuidados` | `V4117A`, `V4119` | Cuidou de moradores **ou** de parentes não moradores |
-| `realizou_afazeres` | `V4120`, `V4121A` | Afazeres no próprio domicílio **ou** em domicílio de parente |
+| `realizou_cuidados` | `V4117A`, `V4119` | Dummy: 1 = cuidou de moradores **ou** de parentes não moradores; 0 = não cuidou |
+| `realizou_afazeres` | `V4120`, `V4121A` | Dummy: 1 = afazeres no próprio domicílio **ou** em domicílio de parente; 0 = não fez |
 
 ```{r}
 #| label: recodificacao
+
 pnadc <- pnadc |>
   mutate(
     sexo = factor(V2007, levels = 1:2, labels = c('Homem', 'Mulher')),
@@ -447,29 +522,30 @@ pnadc <- pnadc |>
         'Ocupada', 'Desocupada'
       )),
 
-    # Cuidados e afazeres: NA para quem não respondeu ao módulo
-    realizou_cuidados = if_else(
-      is.na(V4117A) & is.na(V4119), 
-      NA,
-      V4117A %in% 1 | V4119 %in% 1
+    # Cuidados e afazeres: dummies, com NA para quem não respondeu ao módulo
+    realizou_cuidados = case_when(
+      is.na(V4117A) & is.na(V4119) ~ NA,
+      V4117A %in% 1 | V4119 %in% 1 ~ 1,
+      .default = 0
     ),
-    realizou_afazeres = if_else(
-      is.na(V4120) & is.na(V4121A), 
-      NA,
-      V4120 %in% 1 | V4121A %in% 1
+    realizou_afazeres = case_when(
+      is.na(V4120) & is.na(V4121A) ~ NA,
+      V4120 %in% 1 | V4121A %in% 1 ~ 1,
+      .default = 0
     )
   )
 ```
 
 ### Criança de até 6 anos no domicílio
 
-Uma informação de algumas pessoas (ter até 6 anos) passa a valer para todos os moradores do domicílio. É a base do indicador de nível de ocupação de pessoas de 25 a 54 anos com e sem crianças pequenas (CMIG 1.15).
+Uma informação de algumas pessoas (ter até 6 anos) passa a valer para todos os moradores do domicílio. É a base do indicador de nível de ocupação de pessoas de 25 a 54 anos com e sem crianças pequenas (CMIG 1.15). A dummy `crianca_ate_6` vale 1 para todos os moradores de domicílios com pelo menos uma criança de até 6 anos, e 0 para os demais.
 
 ```{r}
 #| label: variavel-domicilio
+
 pnadc <- pnadc |>
   group_by(ID_DOMICILIO) |>
-  mutate(crianca_ate_6 = any(V2009 <= 6)) |>
+  mutate(crianca_ate_6 = if_else(any(V2009 <= 6), 1, 0)) |>
   ungroup()
 ```
 
@@ -481,28 +557,29 @@ Segue a definição usada pelo IBGE na publicação *Estatísticas de Gênero* p
 - os empregadores e trabalhadores por conta própria que não contribuem para a previdência;
 - os trabalhadores familiares auxiliares.
 
-O indicador é calculado só para o **trabalho não agrícola**, excluindo a agropecuária. Com essa definição, os resultados de 2022 reproduzem o informativo: 37,3% para os homens e 39,7% para as mulheres, contra 37,3% e 39,6% publicados.
+O indicador é calculado só para o **trabalho não agrícola**, excluindo a agropecuária.
 
 ::: {.callout-note}
 ## Outra definição de informalidade
-A divulgação mensal da PNAD Contínua usa o registro no CNPJ (`V4019`) em vez da contribuição para a previdência, não inclui o setor público e considera todas as atividades. Com essa definição, a informalidade em 2022 fica em 40,7% para os homens e 38,0% para as mulheres: a ordem se inverte. Um bom exemplo de como a definição do indicador muda a conclusão.
+A divulgação mensal da PNAD Contínua usa o registro no CNPJ (`V4019`) em vez da contribuição para a previdência, não inclui o setor público e considera todas as atividades. As duas definições medem coisas diferentes e podem levar a conclusões diferentes sobre a desigualdade entre mulheres e homens. Por isso, todo resultado de informalidade precisa vir acompanhado da definição usada.
 :::
 
 ```{r}
 #| label: informalidade
+
 pnadc <- pnadc |>
   mutate(
     # Empregados sem carteira (privado 2, doméstico 4, público 6), familiar
     # auxiliar (10) e empregador ou conta própria não contribuinte (8 e 9)
     informal = case_when(
       condicao_atividade != 'Ocupada' ~ NA, # só se aplica a ocupados
-      VD4009 %in% c(2, 4, 6, 10) ~ TRUE,
-      VD4009 %in% c(8, 9) & VD4012 %in% 2 ~ TRUE,
-      .default = FALSE
+      VD4009 %in% c(2, 4, 6, 10) ~ 1,
+      VD4009 %in% c(8, 9) & VD4012 %in% 2 ~ 1,
+      .default = 0
     ),
 
     # O indicador CMIG 1.9 considera só o trabalho não agrícola
-    atividade_agricola = VD4010 == 1
+    atividade_agricola = if_else(VD4010 == 1, 1, 0)
   )
 ```
 
@@ -511,7 +588,7 @@ pnadc <- pnadc |>
 Duas classificações do trabalho principal das pessoas ocupadas:
 
 - **Setor de atividade** (CMIG 1.8): os 12 grupamentos de `VD4010` reunidos em agropecuária, indústria (que inclui a construção) e serviços. As atividades mal definidas ficam sem setor.
-- **Cargo gerencial** (CMIG 4.3): as ocupações de gerência sênior e intermediária, identificadas pelos dois primeiros dígitos do código da ocupação (`V4010`).
+- **Cargo gerencial** (CMIG 4.3): as ocupações de direção e gerência, identificadas pelos dois primeiros dígitos do código da ocupação (`V4010`). São duas variáveis: `cargo_gerencial`, só com a gerência sênior e intermediária, e `cargo_gerencial_total`, que inclui também a gerência júnior.
 
 #### Por que só parte dos diretores e gerentes
 
@@ -528,10 +605,18 @@ O grande grupo 1 dessa classificação, "Diretores e gerentes", tem quatro subgr
 
 O indicador considera os subgrupos **11, 12 e 13**, que reúnem a gerência sênior e intermediária: quem dirige organizações, define políticas e coordena áreas inteiras. O subgrupo **14** fica de fora porque é classificado como gerência júnior: reúne gerentes de estabelecimentos pequenos, como lojas, restaurantes e pousadas, que em geral acumulam a gerência com a operação do dia a dia e têm autonomia de decisão mais limitada.
 
-A distinção importa para a análise de gênero. Como as mulheres estão mais presentes na gerência de comércio e serviços, incluir o subgrupo 14 aumentaria a participação feminina medida, sem que isso refletisse maior acesso aos postos onde as decisões de maior alcance são tomadas.
+O CMIG 4.3 tem duas séries: a proporção de mulheres em **todos os cargos gerenciais** (subgrupos 11 a 14) e a proporção de mulheres na **gerência sênior e intermediária** (subgrupos 11 a 13). O relatório cria uma variável para cada série:
+
+| Variável | Subgrupos | Série do CMIG 4.3 |
+|---|---|---|
+| `cargo_gerencial` | 11, 12 e 13 | Gerência sênior e intermediária |
+| `cargo_gerencial_total` | 11, 12, 13 e 14 | Todos os cargos gerenciais |
+
+A distinção pode importar para a análise de gênero. Se as mulheres estiverem mais presentes na gerência de comércio e serviços do que nos demais subgrupos, incluir o subgrupo 14 aumenta a participação feminina medida, sem que isso reflita maior acesso aos postos onde as decisões de maior alcance são tomadas. Comparar o indicador calculado com as duas variáveis permite verificar essa hipótese nos dados.
 
 ```{r}
 #| label: setor-cargo
+
 pnadc <- pnadc |>
   mutate(
     setor = case_when(
@@ -542,10 +627,20 @@ pnadc <- pnadc |>
       factor(levels = c('Agropecuária', 'Indústria', 'Serviços')),
 
     # Os dois primeiros dígitos do código da ocupação indicam o subgrupo
+    subgrupo_ocupacao = str_sub(V4010, 1, 2),
+
+    # Gerência sênior e intermediária: subgrupos 11, 12 e 13
     cargo_gerencial = case_when(
       condicao_atividade != 'Ocupada' ~ NA, # só se aplica a ocupados
-      str_sub(V4010, 1, 2) %in% c('11', '12', '13') ~ TRUE,
-      .default = FALSE
+      subgrupo_ocupacao %in% c('11', '12', '13') ~ 1,
+      .default = 0
+    ),
+
+    # Todos os cargos gerenciais: inclui a gerência júnior (subgrupo 14)
+    cargo_gerencial_total = case_when(
+      condicao_atividade != 'Ocupada' ~ NA,
+      subgrupo_ocupacao %in% c('11', '12', '13', '14') ~ 1,
+      .default = 0
     )
   )
 ```
@@ -554,19 +649,38 @@ pnadc <- pnadc |>
 
 Cada indicador do curso é uma razão entre um numerador e um denominador, calculados com as variáveis originais e as derivadas acima. Os blocos 5 a 7 calculam esses indicadores; a tabela mostra de onde cada um sai.
 
+Os códigos entre parênteses seguem a numeração usada pelo IBGE na publicação *Estatísticas de Gênero*. Na lista da ONU, a dimensão aparece em algarismos romanos: o indicador 1.3 daqui é o I.3 de lá, e o 4.3 é o IV.3.
+
+::: {.callout-important}
+## Duas idades mínimas: 14 e 15 anos
+
+Os indicadores de trabalho deste relatório usam **duas idades mínimas diferentes**, e é preciso atenção para não misturá-las.
+
+- **14 anos ou mais** é o padrão do IBGE. É a partir dessa idade que a PNAD Contínua investiga o trabalho e classifica as pessoas em ocupadas, desocupadas ou fora da força de trabalho. A variável `condicao_atividade` segue esse padrão.
+- **15 anos ou mais** é a idade usada pelo CMIG nos indicadores em que a lista da ONU fixa a idade no próprio nome. Entre os indicadores do curso, isso vale para a **taxa de participação na força de trabalho (1.3)**, calculada para 15 anos ou mais e para 15 a 24 anos.
+
+A regra adotada: **só usam 15 anos os indicadores que dizem isso explicitamente; todos os outros seguem o padrão de 14 anos.**
+
+Em qualquer caso, **numerador e denominador se referem sempre à mesma população**. Na taxa de participação, as pessoas de 14 anos saem tanto da força de trabalho (numerador) quanto da população (denominador). Na prática, isso significa filtrar por `V2009 >= 15` antes de calcular.
+
+A idade mínima muda o resultado do indicador. A coluna "Denominador" da tabela informa a idade usada em cada um.
+:::
+
 | Indicador (CMIG) | Tipo | Numerador | Denominador | Variáveis |
 |---|---|---|---|---|
 | **Trabalho** | | | | |
-| Taxa de participação na força de trabalho (1.3) | Taxa | Pessoas de 15 anos ou mais na força de trabalho (ocupadas + desocupadas) | Pessoas de 15 anos ou mais | `condicao_atividade`, `V2009` |
-| Nível de ocupação | Taxa | Pessoas ocupadas | Pessoas de 14 anos ou mais | `condicao_atividade` |
+| Taxa de participação na força de trabalho, 15 anos ou mais (1.3) | Taxa | Pessoas de **15 anos ou mais** na força de trabalho (ocupadas + desocupadas) | Pessoas de **15 anos ou mais** | `condicao_atividade`, `V2009` |
+| Taxa de participação na força de trabalho, 15 a 24 anos (1.3) | Taxa | Pessoas de **15 a 24 anos** na força de trabalho | Pessoas de **15 a 24 anos** | `condicao_atividade`, `V2009` |
+| Nível de ocupação | Taxa | Pessoas ocupadas de 14 anos ou mais | Pessoas de 14 anos ou mais | `condicao_atividade` |
 | Nível de ocupação com e sem criança de até 6 anos (1.15) | Taxa | Pessoas ocupadas de 25 a 54 anos | Pessoas de 25 a 54 anos, com e sem criança no domicílio | `condicao_atividade`, `V2009`, `crianca_ate_6` |
-| Taxa de desocupação (1.10) | Taxa | Pessoas desocupadas | Pessoas na força de trabalho | `condicao_atividade` |
-| Informalidade (1.9) | Proporção | Ocupados informais em atividades não agrícolas | Ocupados em atividades não agrícolas | `informal`, `atividade_agricola` |
-| Ocupação em tempo parcial (1.14) | Proporção | Ocupados com até 30 horas habituais por semana | Pessoas ocupadas | `VD4031`, `condicao_atividade` |
-| Posição na ocupação: conta própria (1.4), trabalhador familiar auxiliar (1.5) e empregador (1.6) | Proporção | Ocupados em cada posição | Pessoas ocupadas | `VD4009` (9, 10 e 8), `condicao_atividade` |
+| Taxa de desocupação (1.10) | Taxa | Pessoas desocupadas de 14 anos ou mais | Pessoas de 14 anos ou mais na força de trabalho | `condicao_atividade` |
+| Informalidade (1.9) | Taxa | Ocupados informais em atividades não agrícolas | Ocupados em atividades não agrícolas | `informal`, `atividade_agricola` |
+| Ocupação em tempo parcial (1.14) | Taxa | Ocupados com até 30 horas habituais por semana | Pessoas ocupadas | `VD4031`, `condicao_atividade` |
+| Posição na ocupação: conta própria (1.4), trabalhador familiar auxiliar (1.5) e empregador (1.6) | Taxa | Ocupados em cada posição | Pessoas ocupadas | `VD4009` (9, 10 e 8), `condicao_atividade` |
 | Ocupados por setor de atividade (1.8) | Distribuição | Ocupados em cada setor | Ocupados com setor definido | `setor` |
-| Mulheres em cargos gerenciais (4.3) | Proporção | Mulheres em cargos gerenciais | Todas as pessoas em cargos gerenciais | `cargo_gerencial`, `sexo` |
-| Mulheres entre os trabalhadores domésticos | Proporção | Mulheres no trabalho doméstico remunerado | Todas as pessoas no trabalho doméstico remunerado | `VD4009` (3 e 4), `sexo` |
+| Mulheres na gerência sênior e intermediária (4.3) | Taxa | Mulheres na gerência sênior e intermediária | Todas as pessoas na gerência sênior e intermediária | `cargo_gerencial`, `sexo` |
+| Mulheres em todos os cargos gerenciais (4.3) | Taxa | Mulheres em cargos gerenciais, incluída a gerência júnior | Todas as pessoas em cargos gerenciais | `cargo_gerencial_total`, `sexo` |
+| Mulheres entre os trabalhadores domésticos | Taxa | Mulheres no trabalho doméstico remunerado | Todas as pessoas no trabalho doméstico remunerado | `VD4009` (3 e 4), `sexo` |
 | Carga total de trabalho (1.2) | Média | Soma das horas habituais de trabalho e das horas de cuidados e afazeres | Ocupados que realizaram cuidados ou afazeres | `VD4031`, `V4121B`, `condicao_atividade` |
 | **Rendimento** | | | | |
 | Rendimento médio habitual de todos os trabalhos | Média | Soma dos rendimentos | Ocupados com rendimento | `VD4019` |
@@ -577,7 +691,7 @@ Cada indicador do curso é uma razão entre um numerador e um denominador, calcu
 | Frequência escolar bruta de 18 a 24 anos (2.4) | Taxa | Pessoas de 18 a 24 anos que frequentam escola | Pessoas de 18 a 24 anos | `V3002`, `V2009` |
 | Taxa de conclusão do ensino fundamental (2.6) | Taxa | Pessoas de 17 a 19 anos com fundamental completo ou mais | Pessoas de 17 a 19 anos | `VD3004` (3 ou mais), `V2009` |
 | Taxa de conclusão do ensino médio | Taxa | Pessoas de 20 a 22 anos com médio completo ou mais | Pessoas de 20 a 22 anos | `VD3004` (5 ou mais), `V2009` |
-| Jovens que não estudam nem estão ocupados (1.7) | Proporção | Pessoas de 15 a 24 anos não ocupadas e que não frequentam escola | Pessoas de 15 a 24 anos | `condicao_atividade`, `V3002`, `V2009` |
+| Jovens que não estudam nem estão ocupados (1.7) | Taxa | Pessoas de 15 a 24 anos não ocupadas e que não frequentam escola | Pessoas de 15 a 24 anos | `condicao_atividade`, `V3002`, `V2009` |
 | **Cuidados e afazeres domésticos** | | | | |
 | Horas semanais em cuidados e afazeres (1.1) | Média | Soma das horas dedicadas | Pessoas de 14 anos ou mais que realizaram cuidados ou afazeres | `V4121B` |
 | Taxa de realização de afazeres domésticos | Taxa | Pessoas que realizaram afazeres | Pessoas de 14 anos ou mais | `realizou_afazeres` |
@@ -587,56 +701,977 @@ Cada indicador do curso é uma razão entre um numerador e um denominador, calcu
 
 ::: {.callout-note}
 ## Cuidados na leitura da tabela
-- **Idade na taxa de participação:** o CMIG usa 15 anos ou mais, e é assim que o informativo calcula. As divulgações regulares da PNAD Contínua usam 14 anos ou mais, a idade de trabalhar adotada pelo IBGE. Por isso o nível de ocupação e a taxa de desocupação aparecem aqui com 14 anos ou mais.
-- **Carga total de trabalho:** calculada com as horas habituais de trabalho. É uma aproximação: o resultado de 2022 fica em 52,6 horas para os homens e 55,0 para as mulheres, contra 52,1 e 54,4 no informativo, cuja definição exata não foi identificada.
+- **Pessoas ocupadas:** nos indicadores calculados entre os ocupados (informalidade, tempo parcial, posição na ocupação, setor, cargos gerenciais e rendimento), a população são os ocupados de 14 anos ou mais, o padrão do IBGE.
+- **Carga total de trabalho:** calculada com as horas habituais de trabalho. É uma aproximação, porque a definição exata usada no informativo não foi identificada.
 - **Indicadores de educação:** o informativo usa o 2º trimestre, que tem o módulo ampliado de educação. Com a 5ª visita, os resultados ficam próximos, mas não idênticos.
 - **Horas em cuidados e afazeres:** o denominador é quem realizou as atividades, e não toda a população de 14 anos ou mais. A pergunta das horas (`V4121B`) só é feita a quem respondeu "sim" a alguma delas.
-- **Jovens que não estudam nem estão ocupados:** o informativo também exclui quem estava em curso de qualificação profissional, informação que não está na base do curso. Por isso, o resultado aqui fica um pouco acima do publicado.
+- **Jovens que não estudam nem estão ocupados:** o informativo também exclui quem estava em curso de qualificação profissional, informação que não está na base do curso. Por isso, o indicador calculado aqui inclui mais pessoas e tende a ficar acima do publicado.
 - **Taxas de realização de afazeres e de cuidados:** não estão no informativo, mas complementam a média de horas: mostram quantas pessoas realizam as atividades, e não só quanto tempo dedicam.
 :::
 
-## 5. Primeiras estimativas e primeiro gráfico
+## 5. Primeiras estimativas e primeiros gráficos
+
+Este bloco calcula todos os indicadores da tabela acima com o `dplyr`, para o Brasil e para as UFs escolhidas nos parâmetros. O `dplyr` é rápido e basta para obter as **estimativas pontuais**, desde que o peso amostral **com calibração** seja usado. O que ele não faz é dizer o quão preciso é cada número: isso fica para o bloco 6.
+
+::: {.callout-note}
+## Cálculo de estimativas usando o pacote `dplyr`
+Sempre se usará o peso **com calibração** para o cálculo das estimativas pontuais usando o pacote `dplyr`. Não se deve usar o peso **sem calibração**. Isso levará a estimativas pontuais erradas.
+:::
+
+### Os estimadores
+
+Todos os indicadores do relatório são construídos a partir de **totais estimados**. A notação usada a seguir:
+
+- $s$ é a amostra, e $i$ é uma pessoa entrevistada;
+- $\pi_i$ é a probabilidade de a pessoa $i$ ter sido sorteada;
+- $w_i$ é o peso da pessoa $i$ (`V1032`);
+- $y_i$ é o valor de uma variável para a pessoa $i$.
+
+**Total.** O estimador de Horvitz-Thompson soma os valores da amostra, cada um multiplicado pelo inverso da sua probabilidade de seleção:
+
+$$
+\hat{Y}_{HT} = \sum_{i \in s} \frac{y_i}{\pi_i}
+$$
+
+Ele é **não viesado**: em média, sobre todas as amostras possíveis, acerta o total da população. A ideia é que cada pessoa entrevistada representa $1/\pi_i$ pessoas da população.
+
+O peso `V1032` parte desse inverso da probabilidade e recebe dois ajustes do IBGE: a correção para os domicílios que não responderam e a **calibração**, que faz os totais da amostra baterem com as projeções de população. O total estimado no relatório é, então:
+
+$$
+\hat{Y} = \sum_{i \in s} w_i \, y_i
+$$
+
+Com a calibração, esse estimador deixa de ser exatamente o de Horvitz-Thompson, mas mantém a mesma lógica e é aproximadamente não viesado. Um caso particular é o **tamanho da população**, obtido com $y_i = 1$ para todos: $\hat{N} = \sum_{i \in s} w_i$.
+
+**Média.** A média é a razão entre dois totais estimados, o total da variável e o tamanho da população:
+
+$$
+\hat{\bar{Y}} = \frac{\hat{Y}}{\hat{N}} = \frac{\sum_{i \in s} w_i \, y_i}{\sum_{i \in s} w_i}
+$$
+
+**Razão.** De forma geral, a razão entre os totais de duas variáveis é:
+
+$$
+\hat{R} = \frac{\hat{Y}}{\hat{X}} = \frac{\sum_{i \in s} w_i \, y_i}{\sum_{i \in s} w_i \, x_i}
+$$
+
+**Taxa e média num grupo da população.** Os indicadores não se referem à população inteira, mas a um grupo: as pessoas de 15 anos ou mais, os ocupados, as mulheres. Esse grupo é o **denominador** do indicador. Na amostra, ele é o conjunto $D$ das pessoas entrevistadas que pertencem ao grupo.
+
+- **Taxa.** O **numerador** é o conjunto $N$ das pessoas do denominador que têm a característica medida. O numerador está sempre contido no denominador ($N \subseteq D$): a condição para estar no numerador é a condição do denominador **mais** a condição própria do indicador. A taxa é a razão entre o total estimado de pessoas do numerador e o total estimado de pessoas do denominador:
+
+$$
+\hat{T} = \frac{\sum_{i \in N} w_i}{\sum_{i \in D} w_i} \times 100, \qquad N \subseteq D
+$$
+
+- **Média no grupo.** A razão entre o total da variável e o total de pessoas, calculados só entre as pessoas do denominador:
+
+$$
+\hat{\bar{Y}}_D = \frac{\sum_{i \in D} w_i \, y_i}{\sum_{i \in D} w_i}
+$$
+
+Na taxa de participação na força de trabalho, por exemplo, o denominador $D$ são as pessoas de 15 anos ou mais, e o numerador $N$ são as pessoas de 15 anos ou mais **que estão na força de trabalho**. As funções `taxa()` e `media()`, mais adiante, são essas duas fórmulas escritas em código.
+
+### Os recortes: Brasil e UFs escolhidas
+
+O parâmetro `ufs` traz as siglas das UFs. Na base, a UF é um código numérico, e a tabela abaixo faz a ponte entre os dois.
 
 ```{r}
-#| label: estimativas-dplyr
-# TODO: a mesma estimativa sem peso e com peso (dplyr)
+#| label: tabela-ufs
+
+tabela_ufs <- tribble(
+  ~UF, ~sigla, ~nome_uf,
+  11, 'RO', 'Rondônia',
+  12, 'AC', 'Acre',
+  13, 'AM', 'Amazonas',
+  14, 'RR', 'Roraima',
+  15, 'PA', 'Pará',
+  16, 'AP', 'Amapá',
+  17, 'TO', 'Tocantins',
+  21, 'MA', 'Maranhão',
+  22, 'PI', 'Piauí',
+  23, 'CE', 'Ceará',
+  24, 'RN', 'Rio Grande do Norte',
+  25, 'PB', 'Paraíba',
+  26, 'PE', 'Pernambuco',
+  27, 'AL', 'Alagoas',
+  28, 'SE', 'Sergipe',
+  29, 'BA', 'Bahia',
+  31, 'MG', 'Minas Gerais',
+  32, 'ES', 'Espírito Santo',
+  33, 'RJ', 'Rio de Janeiro',
+  35, 'SP', 'São Paulo',
+  41, 'PR', 'Paraná',
+  42, 'SC', 'Santa Catarina',
+  43, 'RS', 'Rio Grande do Sul',
+  50, 'MS', 'Mato Grosso do Sul',
+  51, 'MT', 'Mato Grosso',
+  52, 'GO', 'Goiás',
+  53, 'DF', 'Distrito Federal'
+)
+
+# Confere as siglas informadas no parâmetro
+siglas_invalidas <- setdiff(ufs, tabela_ufs$sigla)
+if (length(siglas_invalidas) > 0) {
+  stop(
+    'Sigla de UF não reconhecida: ', paste(siglas_invalidas, collapse = ', '),
+    '. Use siglas como RJ, SP ou BA.',
+    call. = FALSE
+  )
+}
+
+ufs_escolhidas <- tabela_ufs |>
+  filter(sigla %in% ufs)
+```
+
+Para calcular tudo de uma vez, a base é empilhada: uma cópia inteira com o rótulo "Brasil" e, para cada UF escolhida, as linhas daquela UF com o nome dela. A coluna `recorte` passa a dizer a que território cada linha pertence, e um `group_by(recorte)` calcula os indicadores de todos os territórios no mesmo comando.
+
+```{r}
+#| label: recortes
+
+pnadc_recortes <- bind_rows(
+  pnadc |>
+    mutate(recorte = 'Brasil'),
+  pnadc |>
+    inner_join(ufs_escolhidas, by = 'UF') |>
+    mutate(recorte = nome_uf)
+) |>
+  mutate(
+    recorte = factor(recorte, levels = c('Brasil', ufs_escolhidas$nome_uf))
+  )
+
+pnadc_recortes |>
+  count(recorte, name = 'pessoas_na_amostra') |>
+  knitr::kable(
+    format.args = list(big.mark = '.', decimal.mark = ','),
+    col.names = c('Recorte', 'Pessoas na amostra')
+  )
+```
+
+::: {.callout-note}
+## Uma pessoa, dois recortes
+Na base empilhada, quem mora numa UF escolhida aparece duas vezes: uma no Brasil e outra na sua UF. Isso é intencional, porque cada recorte é calculado em separado. A base empilhada serve só para os cálculos por recorte e não deve ser usada para totais.
+:::
+
+### A mesma pergunta, duas respostas
+
+O primeiro indicador é a **taxa de participação na força de trabalho** (CMIG 1.3): entre as pessoas de 15 anos ou mais, a taxa das que estão na força de trabalho, ocupadas ou desocupadas. Como a idade é a de 15 anos, o filtro `V2009 >= 15` vem antes de tudo, e vale para o numerador e para o denominador.
+
+A PNAD Contínua é uma amostra, e as pessoas não têm todas a mesma chance de serem sorteadas. Cada pessoa entrevistada representa um número diferente de pessoas da população, e esse número é o seu **peso com calibração** (`V1032`). O bloco abaixo calcula a taxa de duas formas:
+
+- **sem peso**: a taxa entre as pessoas entrevistadas, como se cada uma valesse por uma;
+- **com peso**: infere o que a amostra representa para a população.
+
+```{r}
+#| label: tbl-participacao-sem-com-peso
+#| tbl-cap: !expr "paste0('Taxa de participação na força de trabalho das pessoas de 15 anos ou mais (CMIG 1.3), sem peso e com peso, por sexo. Fonte: IBGE, PNAD Contínua, ', params$visita, 'ª visita, ', params$ano, '.')"
+
+participacao <- pnadc_recortes |>
+  filter(V2009 >= 15) |>
+  mutate(
+    # Dummy: 1 para quem está na força de trabalho, 0 para quem não está
+    na_forca_trabalho = if_else(
+      condicao_atividade %in% c('Ocupada', 'Desocupada'), 1, 0
+    )
+  ) |>
+  group_by(recorte, sexo) |>
+  summarise(
+    pessoas_na_amostra = n(),
+    # Sem peso: cada pessoa entrevistada vale 1
+    sem_peso = sum(na_forca_trabalho) / n() * 100,
+    # Com peso: os dois totais estimados da fórmula da razão
+    total_forca_trabalho = sum(V1032 * na_forca_trabalho), # Y chapéu
+    total_populacao = sum(V1032), # N chapéu
+    com_peso = total_forca_trabalho / total_populacao * 100,
+    .groups = 'drop'
+  ) |>
+  mutate(diferenca = com_peso - sem_peso)
+
+participacao |>
+  knitr::kable(
+    digits = c(0, 0, 0, 1, 0, 0, 1, 1),
+    format.args = list(big.mark = '.', decimal.mark = ','),
+    col.names = c(
+      'Recorte', 'Sexo', 'Pessoas na amostra', 'Taxa sem peso (%)',
+      'Pessoas na força de trabalho', 'Pessoas de 15 anos ou mais',
+      'Taxa com peso (%)', 'Diferença (p.p.)'
+    )
+  )
+```
+
+A coluna "Diferença" mostra o tamanho do erro de ignorar o peso. A estimativa correta é sempre a **com peso**: é ela que se refere à população, e não às pessoas que por acaso foram entrevistadas.
+
+### Todos os indicadores
+
+Todos os indicadores da tabela do bloco 4 são de dois tipos: uma **taxa ou razão** (quantas pessoas atendem a uma condição, entre as pessoas de uma população) ou uma **média** (o valor médio de uma variável numa população). Duas funções pequenas resolvem os dois casos, sempre com o peso:
+
+```{r}
+#| label: funcoes-indicadores
+
+# Taxa, em %: soma dos pesos do numerador dividida pela soma dos pesos do
+# denominador. O %in% TRUE trata como "não" os casos em que a condição não se
+# aplica (NA).
+taxa <- function(numerador, denominador, peso) {
+  numerador <- numerador %in% TRUE
+  denominador <- denominador %in% TRUE
+
+  # O numerador tem que estar contido no denominador
+  if (any(numerador & !denominador)) {
+    stop(
+      'O numerador tem pessoas que não estão no denominador. ',
+      'Inclua no numerador a condição do denominador.',
+      call. = FALSE
+    )
+  }
+
+  sum(peso[numerador]) / sum(peso[denominador]) * 100
+}
+
+# Média ponderada da variável entre as pessoas do denominador com valor informado
+media <- function(valor, denominador, peso) {
+  denominador <- denominador %in% TRUE & !is.na(valor)
+  sum(peso[denominador] * valor[denominador]) / sum(peso[denominador])
+}
+```
+
+As duas funções são as fórmulas da seção "Os estimadores": `taxa()` calcula $\hat{T}$, e `media()` calcula $\hat{\bar{Y}}_D$. Os argumentos `numerador` e `denominador` são condições que definem os conjuntos $N$ e $D$, e `peso` é o $w_i$. É a tabela do bloco 4 escrita em código.
+
+Como o numerador está sempre contido no denominador, cada condição de numerador abaixo **repete a condição do denominador** e acrescenta a sua. Se a condição do denominador for esquecida, o numerador pode incluir pessoas de fora do grupo, e a taxa sai errada sem nenhum aviso. Por isso, a função `taxa()` confere essa regra e interrompe o cálculo quando ela não é cumprida.
+
+```{r}
+#| label: indicadores-sexo
+
+indicadores_sexo <- pnadc_recortes |>
+  mutate(
+    idade = V2009,
+    # Dummies da condição de atividade (1 = sim, 0 = não)
+    ocupada = if_else(condicao_atividade %in% 'Ocupada', 1, 0),
+    desocupada = if_else(condicao_atividade %in% 'Desocupada', 1, 0),
+    # Força de trabalho = ocupados + desocupados: a soma de duas dummies
+    forca_trabalho = ocupada + desocupada,
+    estuda = if_else(V3002 %in% 1, 1, 0)
+  ) |>
+  group_by(recorte, sexo) |>
+  summarise(
+    # Trabalho
+    participacao_15 = taxa(
+      numerador = idade >= 15 & forca_trabalho == 1,
+      denominador = idade >= 15,
+      peso = V1032
+    ),
+    participacao_15_24 = taxa(
+      numerador = idade >= 15 & idade <= 24 & forca_trabalho == 1,
+      denominador = idade >= 15 & idade <= 24,
+      peso = V1032
+    ),
+    nivel_ocupacao = taxa(
+      numerador = idade >= 14 & ocupada == 1,
+      denominador = idade >= 14,
+      peso = V1032
+    ),
+    ocupacao_com_crianca = taxa(
+      numerador = idade >= 25 & idade <= 54 & crianca_ate_6 == 1 & ocupada == 1,
+      denominador = idade >= 25 & idade <= 54 & crianca_ate_6 == 1,
+      peso = V1032
+    ),
+    ocupacao_sem_crianca = taxa(
+      numerador = idade >= 25 & idade <= 54 & crianca_ate_6 == 0 & ocupada == 1,
+      denominador = idade >= 25 & idade <= 54 & crianca_ate_6 == 0,
+      peso = V1032
+    ),
+    desocupacao = taxa(
+      numerador = forca_trabalho == 1 & desocupada == 1,
+      denominador = forca_trabalho == 1,
+      peso = V1032
+    ),
+    informalidade = taxa(
+      numerador = ocupada == 1 & atividade_agricola == 0 & informal == 1,
+      denominador = ocupada == 1 & atividade_agricola == 0,
+      peso = V1032
+    ),
+    tempo_parcial = taxa(
+      numerador = ocupada == 1 & VD4031 <= 30,
+      denominador = ocupada == 1,
+      peso = V1032
+    ),
+    conta_propria = taxa(
+      numerador = ocupada == 1 & VD4009 == 9,
+      denominador = ocupada == 1,
+      peso = V1032
+    ),
+    familiar_auxiliar = taxa(
+      numerador = ocupada == 1 & VD4009 == 10,
+      denominador = ocupada == 1,
+      peso = V1032
+    ),
+    empregador = taxa(
+      numerador = ocupada == 1 & VD4009 == 8,
+      denominador = ocupada == 1,
+      peso = V1032
+    ),
+    setor_agropecuaria = taxa(
+      numerador = ocupada == 1 & !is.na(setor) & setor == 'Agropecuária',
+      denominador = ocupada == 1 & !is.na(setor),
+      peso = V1032
+    ),
+    setor_industria = taxa(
+      numerador = ocupada == 1 & !is.na(setor) & setor == 'Indústria',
+      denominador = ocupada == 1 & !is.na(setor),
+      peso = V1032
+    ),
+    setor_servicos = taxa(
+      numerador = ocupada == 1 & !is.na(setor) & setor == 'Serviços',
+      denominador = ocupada == 1 & !is.na(setor),
+      peso = V1032
+    ),
+    carga_total = media(
+      valor = VD4031 + V4121B,
+      denominador = ocupada == 1,
+      peso = V1032
+    ),
+
+    # Rendimento
+    rendimento = media(
+      valor = VD4019,
+      denominador = ocupada == 1,
+      peso = V1032
+    ),
+
+    # Educação
+    instrucao_fundamental_incompleto = taxa(
+      numerador = idade >= 25 & VD3004 %in% 1:2,
+      denominador = idade >= 25,
+      peso = V1032
+    ),
+    instrucao_medio_incompleto = taxa(
+      numerador = idade >= 25 & VD3004 %in% 3:4,
+      denominador = idade >= 25,
+      peso = V1032
+    ),
+    instrucao_superior_incompleto = taxa(
+      numerador = idade >= 25 & VD3004 %in% 5:6,
+      denominador = idade >= 25,
+      peso = V1032
+    ),
+    instrucao_superior_completo = taxa(
+      numerador = idade >= 25 & VD3004 == 7,
+      denominador = idade >= 25,
+      peso = V1032
+    ),
+    frequencia_15_17 = taxa(
+      numerador = idade >= 15 & idade <= 17 & estuda == 1,
+      denominador = idade >= 15 & idade <= 17,
+      peso = V1032
+    ),
+    frequencia_18_24 = taxa(
+      numerador = idade >= 18 & idade <= 24 & estuda == 1,
+      denominador = idade >= 18 & idade <= 24,
+      peso = V1032
+    ),
+    conclusao_fundamental = taxa(
+      numerador = idade >= 17 & idade <= 19 & VD3004 >= 3,
+      denominador = idade >= 17 & idade <= 19,
+      peso = V1032
+    ),
+    conclusao_medio = taxa(
+      numerador = idade >= 20 & idade <= 22 & VD3004 >= 5,
+      denominador = idade >= 20 & idade <= 22,
+      peso = V1032
+    ),
+    nao_estuda_nem_ocupado = taxa(
+      numerador = idade >= 15 & idade <= 24 & estuda == 0 & ocupada == 0,
+      denominador = idade >= 15 & idade <= 24,
+      peso = V1032
+    ),
+
+    # Cuidados e afazeres domésticos
+    horas_afazeres = media(
+      valor = V4121B,
+      denominador = idade >= 14,
+      peso = V1032
+    ),
+    taxa_afazeres = taxa(
+      numerador = idade >= 14 & realizou_afazeres == 1,
+      denominador = idade >= 14,
+      peso = V1032
+    ),
+    taxa_cuidados = taxa(
+      numerador = idade >= 14 & realizou_cuidados == 1,
+      denominador = idade >= 14,
+      peso = V1032
+    ),
+    .groups = 'drop'
+  )
+```
+
+Quatro indicadores não se calculam para cada sexo, porque comparam os dois: a participação das mulheres num grupo e a razão entre os rendimentos.
+
+```{r}
+#| label: indicadores-comparacao
+
+indicadores_comparacao <- pnadc_recortes |>
+  mutate(
+    mulher = if_else(sexo == 'Mulher', 1, 0),
+    ocupada = if_else(condicao_atividade %in% 'Ocupada', 1, 0)
+  ) |>
+  group_by(recorte) |>
+  summarise(
+    mulheres_gerencia = taxa(
+      numerador = cargo_gerencial == 1 & mulher == 1,
+      denominador = cargo_gerencial == 1,
+      peso = V1032
+    ),
+    mulheres_gerencia_total = taxa(
+      numerador = cargo_gerencial_total == 1 & mulher == 1,
+      denominador = cargo_gerencial_total == 1,
+      peso = V1032
+    ),
+    mulheres_domesticas = taxa(
+      numerador = ocupada == 1 & VD4009 %in% 3:4 & mulher == 1,
+      denominador = ocupada == 1 & VD4009 %in% 3:4,
+      peso = V1032
+    ),
+    # Razão entre duas médias: a das mulheres e a dos homens ocupados
+    razao_rendimento = media(
+      valor = VD4019,
+      denominador = ocupada == 1 & mulher == 1,
+      peso = V1032
+    ) / media(
+      valor = VD4019,
+      denominador = ocupada == 1 & mulher == 0,
+      peso = V1032
+    ) * 100,
+    .groups = 'drop'
+  )
+```
+
+Os nomes das colunas são curtos para facilitar o código. A tabela abaixo dá a cada um o nome completo, a dimensão e a unidade, e é usada nas tabelas e nos gráficos.
+
+```{r}
+#| label: nomes-indicadores
+
+nomes_indicadores <- tribble(
+  ~variavel, ~dimensao, ~indicador, ~unidade,
+  'participacao_15', 'Trabalho', 'Taxa de participação, 15 anos ou mais (1.3)', '%',
+  'participacao_15_24', 'Trabalho', 'Taxa de participação, 15 a 24 anos (1.3)', '%',
+  'nivel_ocupacao', 'Trabalho', 'Nível de ocupação, 14 anos ou mais', '%',
+  'ocupacao_com_crianca', 'Trabalho', 'Nível de ocupação, 25 a 54 anos, com criança de até 6 anos (1.15)', '%',
+  'ocupacao_sem_crianca', 'Trabalho', 'Nível de ocupação, 25 a 54 anos, sem criança de até 6 anos (1.15)', '%',
+  'desocupacao', 'Trabalho', 'Taxa de desocupação (1.10)', '%',
+  'informalidade', 'Trabalho', 'Informalidade no trabalho não agrícola (1.9)', '%',
+  'tempo_parcial', 'Trabalho', 'Ocupação em tempo parcial (1.14)', '%',
+  'conta_propria', 'Trabalho', 'Conta própria entre os ocupados (1.4)', '%',
+  'familiar_auxiliar', 'Trabalho', 'Trabalhador familiar auxiliar entre os ocupados (1.5)', '%',
+  'empregador', 'Trabalho', 'Empregador entre os ocupados (1.6)', '%',
+  'setor_agropecuaria', 'Trabalho', 'Ocupados na agropecuária (1.8)', '%',
+  'setor_industria', 'Trabalho', 'Ocupados na indústria (1.8)', '%',
+  'setor_servicos', 'Trabalho', 'Ocupados nos serviços (1.8)', '%',
+  'carga_total', 'Trabalho', 'Carga total de trabalho (1.2)', 'horas',
+  'rendimento', 'Rendimento', 'Rendimento médio habitual de todos os trabalhos', 'R$',
+  'instrucao_fundamental_incompleto', 'Educação', '25 anos ou mais: sem instrução e fundamental incompleto (2.11)', '%',
+  'instrucao_medio_incompleto', 'Educação', '25 anos ou mais: fundamental completo e médio incompleto (2.11)', '%',
+  'instrucao_superior_incompleto', 'Educação', '25 anos ou mais: médio completo e superior incompleto (2.11)', '%',
+  'instrucao_superior_completo', 'Educação', '25 anos ou mais: superior completo (2.11)', '%',
+  'frequencia_15_17', 'Educação', 'Frequência escolar, 15 a 17 anos (2.3)', '%',
+  'frequencia_18_24', 'Educação', 'Frequência escolar, 18 a 24 anos (2.4)', '%',
+  'conclusao_fundamental', 'Educação', 'Conclusão do ensino fundamental, 17 a 19 anos (2.6)', '%',
+  'conclusao_medio', 'Educação', 'Conclusão do ensino médio, 20 a 22 anos', '%',
+  'nao_estuda_nem_ocupado', 'Educação', 'Jovens de 15 a 24 anos que não estudam nem estão ocupados (1.7)', '%',
+  'horas_afazeres', 'Cuidados e afazeres', 'Horas semanais em cuidados e afazeres (1.1)', 'horas',
+  'taxa_afazeres', 'Cuidados e afazeres', 'Taxa de realização de afazeres domésticos', '%',
+  'taxa_cuidados', 'Cuidados e afazeres', 'Taxa de realização de cuidados de pessoas', '%',
+  'mulheres_gerencia', 'Comparação', 'Mulheres na gerência sênior e intermediária (4.3)', '%',
+  'mulheres_gerencia_total', 'Comparação', 'Mulheres em todos os cargos gerenciais (4.3)', '%',
+  'mulheres_domesticas', 'Comparação', 'Mulheres entre os trabalhadores domésticos', '%',
+  'razao_rendimento', 'Comparação', 'Razão de rendimento mulheres/homens (1.13)', '%'
+) |>
+  mutate(
+    dimensao = factor(dimensao, levels = unique(dimensao)),
+    indicador = factor(indicador, levels = indicador)
+  )
+
+# Formato dos números: sem casas decimais para reais, uma casa para o resto
+formata_valor <- function(valor, unidade) {
+  if_else(
+    unidade == 'R$',
+    scales::number(valor, accuracy = 1, big.mark = '.', decimal.mark = ','),
+    scales::number(valor, accuracy = 0.1, big.mark = '.', decimal.mark = ',')
+  )
+}
+```
+
+Para a tabela e para os gráficos, os resultados passam do formato largo, com uma coluna por indicador, para o formato longo, com uma linha por indicador.
+
+```{r}
+#| label: indicadores-longo
+
+indicadores_sexo_longo <- indicadores_sexo |>
+  pivot_longer(
+    cols = -c(recorte, sexo), names_to = 'variavel', values_to = 'valor'
+  ) |>
+  inner_join(nomes_indicadores, by = 'variavel')
+
+indicadores_comparacao_longo <- indicadores_comparacao |>
+  pivot_longer(cols = -recorte, names_to = 'variavel', values_to = 'valor') |>
+  inner_join(nomes_indicadores, by = 'variavel')
 ```
 
 ```{r}
-#| label: grafico-inicial
-# TODO: gráfico de mulheres e homens com ggplot2
+#| label: tbl-indicadores-sexo
+#| tbl-cap: !expr "paste0('Indicadores por sexo, Brasil e UFs escolhidas. Fonte: IBGE, PNAD Contínua, ', params$visita, 'ª visita, ', params$ano, '.')"
+
+indicadores_sexo_longo |>
+  mutate(
+    valor = formata_valor(valor, unidade),
+    coluna = paste(recorte, sexo, sep = ': ')
+  ) |>
+  arrange(indicador, recorte, sexo) |>
+  select(dimensao, indicador, unidade, coluna, valor) |>
+  pivot_wider(names_from = coluna, values_from = valor) |>
+  rename(Dimensão = dimensao, Indicador = indicador, Unidade = unidade) |>
+  knitr::kable(
+    align = c('l', 'l', 'c', rep('r', 2 * nlevels(pnadc_recortes$recorte)))
+  )
 ```
+
+```{r}
+#| label: tbl-indicadores-comparacao
+#| tbl-cap: !expr "paste0('Indicadores de comparação entre mulheres e homens, Brasil e UFs escolhidas. Fonte: IBGE, PNAD Contínua, ', params$visita, 'ª visita, ', params$ano, '.')"
+
+indicadores_comparacao_longo |>
+  mutate(valor = formata_valor(valor, unidade)) |>
+  arrange(indicador, recorte) |>
+  select(indicador, unidade, recorte, valor) |>
+  pivot_wider(names_from = recorte, values_from = valor) |>
+  rename(Indicador = indicador, Unidade = unidade) |>
+  knitr::kable(
+    align = c('l', 'c', rep('r', nlevels(pnadc_recortes$recorte)))
+  )
+```
+
+::: {.callout-warning}
+## O peso acerta a estimativa, mas não diz o quão precisa ela é.
+As tabelas trazem um número para cada indicador, sem erro-padrão, intervalo de confiança ou coeficiente de variação. Numa UF, a amostra é bem menor que a do Brasil, e alguns indicadores podem se apoiar em poucas pessoas entrevistadas. Antes de comparar dois números ou tirar conclusões, é preciso medir a precisão de cada estimador. Para isso, é preciso declarar o desenho amostral, que é o assunto do bloco 6.
+:::
+
+### Os gráficos
+
+Os gráficos partem das tabelas no formato longo. As cores seguem a publicação do IBGE, com os homens em roxo e as mulheres em laranja, e são guardadas num objeto para todos os gráficos do relatório.
+
+Uma função desenha o gráfico de uma dimensão: barras horizontais, um painel para cada recorte e uma barra para cada sexo. O `ggplotly()` converte o gráfico do `ggplot2` em gráfico interativo.
+
+```{r}
+#| label: funcao-grafico
+
+cores_sexo <- c('Homem' = '#5b4a9b', 'Mulher' = '#e8793a')
+
+# Legenda no topo, à esquerda dos painéis (acima dos nomes dos indicadores),
+# para não cobrir os títulos dos painéis
+legenda_topo <- list(
+  orientation = 'h', x = 0, xanchor = 'right', y = 1, yanchor = 'bottom'
+)
+
+# A altura do gráfico vem da opção fig-height de cada bloco
+grafico_indicadores <- function(dados, rotulo_eixo) {
+  grafico <- dados |>
+    mutate(
+      # Os nomes longos são quebrados em linhas; a ordem segue a da tabela
+      indicador = factor(
+        str_wrap(indicador, 38),
+        levels = rev(str_wrap(levels(droplevels(indicador)), 38))
+      ),
+      # Texto que o plotly mostra ao passar o mouse sobre a barra
+      texto = paste0(
+        recorte, '<br>', sexo, ': ', formata_valor(valor, unidade), ' ', unidade
+      )
+    ) |>
+    ggplot(aes(x = valor, y = indicador, fill = sexo, text = texto)) +
+    geom_col(position = position_dodge(width = 0.8), width = 0.7) +
+    facet_wrap(vars(recorte)) +
+    scale_fill_manual(values = cores_sexo) +
+    labs(x = rotulo_eixo, y = NULL, fill = NULL) +
+    theme_minimal() +
+    theme(legend.position = 'top', panel.grid.major.y = element_blank())
+
+  ggplotly(grafico, tooltip = 'text') |>
+    layout(legend = legenda_topo) |>
+    config(displayModeBar = FALSE)
+}
+```
+
+```{r}
+#| label: fig-trabalho
+#| fig-height: 9.5
+#| fig-cap: !expr "paste0('Indicadores de trabalho, por sexo. Fonte: IBGE, PNAD Contínua, ', params$visita, 'ª visita, ', params$ano, '.')"
+
+indicadores_sexo_longo |>
+  filter(dimensao == 'Trabalho', unidade == '%') |>
+  grafico_indicadores(rotulo_eixo = '%')
+```
+
+```{r}
+#| label: fig-educacao
+#| fig-height: 7
+#| fig-cap: !expr "paste0('Indicadores de educação, por sexo. Fonte: IBGE, PNAD Contínua, ', params$visita, 'ª visita, ', params$ano, '.')"
+
+indicadores_sexo_longo |>
+  filter(dimensao == 'Educação') |>
+  grafico_indicadores(rotulo_eixo = '%')
+```
+
+```{r}
+#| label: fig-afazeres
+#| fig-height: 3.5
+#| fig-cap: !expr "paste0('Taxas de realização de cuidados e de afazeres domésticos, por sexo. Fonte: IBGE, PNAD Contínua, ', params$visita, 'ª visita, ', params$ano, '.')"
+
+indicadores_sexo_longo |>
+  filter(dimensao == 'Cuidados e afazeres', unidade == '%') |>
+  grafico_indicadores(rotulo_eixo = '%')
+```
+
+```{r}
+#| label: fig-horas
+#| fig-height: 3.5
+#| fig-cap: !expr "paste0('Horas semanais de trabalho e de cuidados e afazeres, por sexo. Fonte: IBGE, PNAD Contínua, ', params$visita, 'ª visita, ', params$ano, '.')"
+
+indicadores_sexo_longo |>
+  filter(unidade == 'horas') |>
+  grafico_indicadores(rotulo_eixo = 'Horas por semana')
+```
+
+```{r}
+#| label: fig-rendimento
+#| fig-height: 3
+#| fig-cap: !expr "paste0('Rendimento médio habitual de todos os trabalhos, por sexo. Fonte: IBGE, PNAD Contínua, ', params$visita, 'ª visita, ', params$ano, '.')"
+
+indicadores_sexo_longo |>
+  filter(unidade == 'R$') |>
+  grafico_indicadores(rotulo_eixo = 'R$ por mês')
+```
+
+Os indicadores de comparação já resumem a diferença entre mulheres e homens num número só. Três deles medem a participação das mulheres num grupo de trabalhadores. O gráfico tem uma barra para cada recorte, e uma linha vertical marca os 50%, o ponto em que mulheres e homens estariam em igual número. A razão de rendimento fica só na tabela, porque a sua referência de igualdade é outra: 100%.
+
+```{r}
+#| label: fig-comparacao
+#| fig-height: 4.2
+#| fig-cap: !expr "paste0('Participação das mulheres em grupos de trabalhadores. Fonte: IBGE, PNAD Contínua, ', params$visita, 'ª visita, ', params$ano, '.')"
+
+cores_recorte <- c(
+  '#8c8c8c',
+  scales::brewer_pal(palette = 'Dark2')(8)[seq_len(nrow(ufs_escolhidas))]
+) |>
+  setNames(levels(pnadc_recortes$recorte))
+
+grafico_comparacao <- indicadores_comparacao_longo |>
+  filter(variavel != 'razao_rendimento') |>
+  mutate(
+    indicador = factor(
+      str_wrap(indicador, 38),
+      levels = rev(str_wrap(levels(droplevels(indicador)), 38))
+    ),
+    texto = paste0(recorte, ': ', formata_valor(valor, unidade), '%')
+  ) |>
+  ggplot(aes(x = valor, y = indicador, fill = recorte, text = texto)) +
+  geom_col(position = position_dodge(width = 0.8), width = 0.7) +
+  geom_vline(xintercept = 50, linetype = 'dashed', colour = 'grey40') +
+  scale_fill_manual(values = cores_recorte) +
+  labs(x = '%', y = NULL, fill = NULL) +
+  theme_minimal() +
+  theme(legend.position = 'top', panel.grid.major.y = element_blank())
+
+ggplotly(grafico_comparacao, tooltip = 'text') |>
+  layout(legend = legenda_topo) |>
+  config(displayModeBar = FALSE)
+```
+
+::: {.callout-tip}
+## O que o gráfico interativo permite
+- **Passar o mouse** sobre uma barra mostra o recorte, o sexo e o valor exato.
+- **Clicar num item da legenda** esconde ou mostra aquela série.
+- **Clicar duas vezes** num item da legenda isola só ele.
+
+Para um relatório em PDF ou Word, basta fazer a função devolver o objeto `grafico` em vez de chamar o `ggplotly()`: o gráfico sai estático.
+:::
 
 ## 6. O desenho amostral
 
+O bloco 5 calculou as estimativas pontuais com o `dplyr`. Este bloco responde à pergunta que ficou em aberto: **o quanto confiar em cada número?** Para isso, é preciso dizer ao R como a amostra da PNAD Contínua foi sorteada.
+
+### Por que o desenho importa
+
+A PNAD Contínua não sorteia pessoas uma a uma. A amostra é selecionada em etapas:
+
+- **Estratos:** o país é dividido em estratos geográficos, e cada estrato tem a sua própria amostra.
+- **Unidades primárias de amostragem (UPA):** dentro de cada estrato, são sorteados setores censitários.
+- **Domicílios:** dentro de cada UPA, são sorteados domicílios, e todos os moradores são entrevistados.
+
+Pessoas da mesma UPA e do mesmo domicílio tendem a ser parecidas entre si: moram perto, têm renda próxima, dividem as tarefas da casa. Por isso, cada pessoa entrevistada traz menos informação nova do que traria numa amostra sorteada pessoa a pessoa. Ignorar essa estrutura faz o erro-padrão parecer **menor do que é**, e a estimativa parecer mais precisa do que é.
+
+O pacote `srvyr` guarda essa estrutura num objeto de **desenho amostral**, e calcula as estimativas e as medidas de precisão levando-a em conta.
+
+### O desenho com a calibração refeita
+
+O desenho deste relatório parte do peso sem calibração (`V1031`), declara os dois estágios de seleção (`UPA` e `ID_DOMICILIO`) e os estratos (`Estrato`), e **refaz a calibração** pelas projeções de população: por domínio geográfico (`posest`, com os totais de `V1030`) e por sexo e idade (`posest_sxi`, com os totais de `V1034`). É o que faz a função `pnadc_design()`, do pacote `PNADcIBGE`. A calibração faz os totais estimados baterem com as projeções e reduz a variância das estimativas.
+
+Criar esse desenho leva alguns minutos, porque a calibração é refeita para as 380 mil pessoas da amostra. Por isso, ele é criado uma única vez, gravado num arquivo `.rds` e publicado no Zenodo junto com a base. Em sala, o desenho é só lido.
+
+```{r}
+#| label: gerar-desenho
+#| eval: !expr params$gerar_base
+
+# Executado só com gerar_base: true, depois das variáveis do bloco 4
+desenho_calibrado <- pnadc |>
+  mutate(
+    ocupada = if_else(condicao_atividade %in% 'Ocupada', 1, 0),
+    desocupada = if_else(condicao_atividade %in% 'Desocupada', 1, 0),
+    forca_trabalho = ocupada + desocupada,
+    idade_15_mais = if_else(V2009 >= 15, 1, 0)
+  ) |>
+  PNADcIBGE::pnadc_design()
+
+saveRDS(desenho_calibrado, arquivo_desenho)
+```
+
+::: {.callout-warning}
+## O desenho guarda as variáveis do bloco 4
+O arquivo do desenho é gravado depois do bloco 4 e leva junto as variáveis derivadas (sexo, cor ou raça, condição de atividade, informalidade e as demais) e as dummies acima. Se o código do bloco 4 mudar, o desenho precisa ser gerado de novo, com `gerar_base: true`.
+:::
+
 ```{r}
 #| label: desenho
-# TODO: desenho amostral com srvyr, usando o peso já calibrado pelo IBGE:
-#       ids = UPA + ID_DOMICILIO (dois estágios), strata = Estrato,
-#       weights = V1032, nest = TRUE, e options(survey.lonely.psu = 'adjust')
+
+# Arquivo local, se existir; senão, o link do Zenodo
+desenho <- localiza_arquivo(arquivo_desenho, params$url_desenho) |>
+  readRDS() |>
+  as_survey() # converte o objeto do pacote survey para usar com o srvyr
+
+desenho
+```
+
+::: {.callout-note}
+## Um erro-padrão um pouco diferente do divulgado pelo IBGE
+O IBGE calcula a precisão das suas estimativas com **200 pesos replicados**, obtidos por *bootstrap*. Este relatório refaz a calibração e calcula a variância por **linearização**. Os dois métodos estimam a mesma variância por caminhos diferentes, e por isso os erros-padrão, os intervalos de confiança e os coeficientes de variação daqui podem ficar um pouco diferentes dos divulgados. **Essa diferença não é um erro.** As estimativas pontuais são idênticas. A seção "Três formas de calcular a precisão", no fim deste bloco, compara os métodos.
+:::
+
+### A mesma taxa, agora com a precisão
+
+A taxa de participação na força de trabalho do bloco 5, calculada agora no desenho. O `survey_mean()` de uma dummy é a sua média ponderada, ou seja, a taxa. Junto com ela, o `srvyr` devolve:
+
+- o **erro-padrão (EP)**: o tamanho típico do erro da estimativa, por ela vir de uma amostra;
+- o **intervalo de confiança de 95% (IC)**: a faixa de valores que, em 95% das amostras possíveis, conteria o valor da população;
+- o **coeficiente de variação (CV)**: o erro-padrão como porcentagem da estimativa. Ele permite comparar a precisão de estimativas de tamanhos diferentes.
+
+Para as UFs, o recorte é feito **no desenho**, e não na base. A base empilhada do bloco 5 não serve aqui: nela, as pessoas das UFs escolhidas aparecem duas vezes, e o desenho as contaria em dobro.
+
+No desenho, cada UF é um **domínio**. Um `filter()` no desenho não apaga as pessoas de fora: elas continuam lá, com peso zero, porque o erro-padrão depende de toda a amostra (estratos e UPAs). Por isso, um `filter()` seguido de `group_by(UF)` ainda cria um grupo para cada UF do país, e os grupos sem peso dão erro. O código junta as UFs que não estão na lista num só domínio (com a `UF` igual a `NA`), estima tudo de uma vez e descarta esse domínio no fim.
+
+```{r}
+#| label: participacao-desenho
+
+# Estimativa com erro-padrão, intervalo de confiança e CV, por sexo
+estima_participacao <- function(desenho) {
+  desenho |>
+    filter(V2009 >= 15) |>
+    group_by(sexo, .add = TRUE) |>
+    summarise(
+      taxa = survey_mean(forca_trabalho, vartype = c('se', 'ci', 'cv'))
+    )
+}
+
+participacao_desenho <- bind_rows(
+  desenho |>
+    estima_participacao() |>
+    mutate(recorte = 'Brasil'),
+  desenho |>
+    # UFs fora da lista viram um só domínio (NA), descartado no inner_join
+    mutate(UF = if_else(UF %in% ufs_escolhidas$UF, UF, NA)) |>
+    group_by(UF) |>
+    estima_participacao() |>
+    inner_join(ufs_escolhidas, by = 'UF') |>
+    mutate(recorte = nome_uf)
+) |>
+  mutate(
+    recorte = factor(recorte, levels = levels(pnadc_recortes$recorte)),
+    # Taxa, erro-padrão, limites do IC e CV passam para %
+    across(starts_with('taxa'), \(valor) valor * 100)
+  ) |>
+  select(recorte, sexo, starts_with('taxa'))
 ```
 
 ```{r}
-#| label: dplyr-vs-srvyr
-# TODO: a estimativa do bloco 5 refeita com srvyr, com IC e CV
+#| label: tbl-participacao-desenho
+#| tbl-cap: !expr "paste0('Taxa de participação na força de trabalho das pessoas de 15 anos ou mais (CMIG 1.3), com medidas de precisão, por sexo. Fonte: IBGE, PNAD Contínua, ', params$visita, 'ª visita, ', params$ano, '.')"
+
+participacao_desenho |>
+  # A taxa calculada com o dplyr no bloco 5, para comparar
+  left_join(
+    participacao |> select(recorte, sexo, com_peso),
+    by = c('recorte', 'sexo')
+  ) |>
+  arrange(recorte, sexo) |>
+  select(
+    recorte, sexo, com_peso, taxa, taxa_se, taxa_low, taxa_upp, taxa_cv
+  ) |>
+  knitr::kable(
+    digits = c(0, 0, 1, 1, 2, 1, 1, 2),
+    format.args = list(decimal.mark = ','),
+    col.names = c(
+      'Recorte', 'Sexo', 'Taxa com dplyr (%)', 'Taxa com srvyr (%)',
+      'EP (p.p.)', 'IC 95%: inferior', 'IC 95%: superior', 'CV (%)'
+    )
+  )
+```
+
+As colunas "Taxa com dplyr" e "Taxa com srvyr" são iguais: o peso já acertava a estimativa pontual. O que o desenho acrescenta são as outras colunas. Na UF, a amostra é menor, e o erro-padrão e o CV são maiores que os do Brasil.
+
+### A taxa como razão
+
+Na seção "Os estimadores", a taxa foi escrita como a razão entre dois totais: o total de pessoas do numerador e o total de pessoas do denominador. O `survey_ratio()` calcula exatamente essa razão, com as dummies do numerador e do denominador, sem precisar de `filter()`:
+
+```{r}
+#| label: taxa-como-razao
+
+desenho |>
+  group_by(sexo) |>
+  summarise(
+    taxa = survey_ratio(
+      numerator = forca_trabalho * idade_15_mais, # numerador: N
+      denominator = idade_15_mais, # denominador: D
+      vartype = c('se', 'cv')
+    )
+  ) |>
+  mutate(across(starts_with('taxa'), \(valor) valor * 100)) |>
+  knitr::kable(
+    digits = c(0, 1, 2, 2),
+    format.args = list(decimal.mark = ','),
+    col.names = c('Sexo', 'Taxa (%)', 'EP (p.p.)', 'CV (%)')
+  )
+```
+
+O resultado é o mesmo da tabela anterior para o Brasil, inclusive o erro-padrão. Calcular uma taxa num grupo da população é calcular uma razão: as duas formas são equivalentes.
+
+### Os intervalos de confiança no gráfico
+
+O gráfico mostra cada taxa como um ponto, e o intervalo de confiança como uma linha horizontal em torno dele. Intervalos mais longos indicam estimativas menos precisas.
+
+```{r}
+#| label: fig-participacao-ic
+#| fig-height: 3
+#| fig-cap: !expr "paste0('Taxa de participação na força de trabalho das pessoas de 15 anos ou mais, por sexo, com intervalo de confiança de 95%. Fonte: IBGE, PNAD Contínua, ', params$visita, 'ª visita, ', params$ano, '.')"
+
+grafico_ic <- participacao_desenho |>
+  mutate(
+    recorte = factor(recorte, levels = rev(levels(recorte))),
+    unidade = '%',
+    texto = paste0(
+      recorte, '<br>', sexo, ': ', formata_valor(taxa, unidade), '%',
+      '<br>IC 95%: ', formata_valor(taxa_low, unidade), '% a ',
+      formata_valor(taxa_upp, unidade), '%'
+    )
+  ) |>
+  ggplot(aes(
+    x = taxa, xmin = taxa_low, xmax = taxa_upp, y = recorte,
+    colour = sexo, text = texto
+  )) +
+  geom_pointrange(position = position_dodge(width = 0.5)) +
+  scale_colour_manual(values = cores_sexo) +
+  labs(x = 'Taxa de participação (%)', y = NULL, colour = NULL) +
+  theme_minimal() +
+  theme(panel.grid.major.y = element_blank())
+
+ggplotly(grafico_ic, tooltip = 'text') |>
+  layout(legend = legenda_topo) |>
+  config(displayModeBar = FALSE)
 ```
 
 ### Três formas de calcular a precisão
 
-Pré-calculado: só roda com `gerar_base: true`, porque exige os pesos replicados e alguns minutos de processamento. Em sala, os alunos veem o resultado guardado.
+A calibração refeita não é a única forma de calcular a precisão com esta base. Há outras duas:
+
+- **pesos replicados**: os 200 pesos obtidos pelo IBGE por *bootstrap*, cada um já calibrado. É o método das divulgações oficiais. Exige um arquivo à parte, com os 200 pesos de cada pessoa, e cada estimativa é calculada 201 vezes;
+- **`V1032` direto**: o desenho declara estratos e UPAs e usa o peso já calibrado, sem refazer a calibração. É a forma mais simples, e o erro-padrão sai um pouco maior que o oficial, ou seja, conservador.
+
+O bloco abaixo compara as três formas para a mesma estimativa: as horas semanais em cuidados e afazeres domésticos, por sexo, no Brasil.
+
+Pré-calculado: só roda com `gerar_base: true`, porque usa os pesos replicados e refaz a calibração, o que leva alguns minutos. Em sala, os alunos veem o resultado guardado.
 
 ```{r}
 #| label: comparacao-metodos
 #| eval: !expr params$gerar_base
 #| cache: true
-#| cache.extra: !expr c(params$ano, params$visita)
-# TODO: mesma estimativa (horas de afazeres por sexo) em três desenhos, com
-#       tempo de criação, tempo de estimação e erro-padrão de cada um:
-#       1. V1032 direto (o desenho usado em sala)
-#       2. V1031 calibrado por posest (V1030) e posest_sxi (V1034), por raking
-#       3. pesos replicados V1032001 a V1032200 (bootstrap), juntados pela chave
-#       As estimativas pontuais devem ser idênticas; só o erro-padrão muda.
+#| cache.extra: !expr list(params$ano, params$visita, vars_curso)
+
+# Mede o tempo de uma expressão, em segundos
+cronometra <- function(expressao) {
+  system.time(expressao)[['elapsed']]
+}
+
+# A estimativa a comparar, para qualquer desenho
+horas_afazeres <- function(desenho) {
+  desenho |>
+    filter(V2009 >= 14) |>
+    group_by(sexo) |>
+    summarise(horas = survey_mean(V4121B, na.rm = TRUE, vartype = c('se', 'cv')))
+}
+
+# Pesos replicados: a chave da pessoa e os 200 pesos, gravados no bloco 3
+tipos_replicas <- cols(.default = col_double())
+tipos_replicas$cols[intersect(vars_chave, vars_texto)] <- list(col_character())
+tipos_replicas$cols[setdiff(vars_chave, vars_texto)] <- list(col_integer())
+
+replicas <- read_csv(
+  arquivo_replicas,
+  col_types = tipos_replicas,
+  col_select = all_of(c(vars_chave, vars_replicas)),
+  progress = FALSE
+)
+
+# 1. Calibração refeita: o desenho usado em sala, recriado para medir o tempo
+#    (a base vai sem as réplicas: com elas, o pnadc_design() usaria as réplicas)
+tempo_criar_1 <- cronometra(
+  desenho_1 <- as_survey(PNADcIBGE::pnadc_design(pnadc))
+)
+tempo_estimar_1 <- cronometra(resultado_1 <- horas_afazeres(desenho_1))
+
+# 2. Pesos replicados (bootstrap), o método do IBGE
+tempo_criar_2 <- cronometra(desenho_2 <- as_survey_rep(
+  pnadc |> inner_join(replicas, by = vars_chave),
+  weights = V1032, repweights = matches('^V1032[0-9]{3}$'),
+  type = 'bootstrap', mse = TRUE
+))
+tempo_estimar_2 <- cronometra(resultado_2 <- horas_afazeres(desenho_2))
+
+# 3. V1032 direto, sem refazer a calibração. Estratos com uma única UPA na
+#    amostra: a variância é aproximada a partir da média geral
+options(survey.lonely.psu = 'adjust')
+tempo_criar_3 <- cronometra(desenho_3 <- as_survey_design(
+  pnadc,
+  ids = c(UPA, ID_DOMICILIO), strata = Estrato, weights = V1032, nest = TRUE
+))
+tempo_estimar_3 <- cronometra(resultado_3 <- horas_afazeres(desenho_3))
+
+comparacao_metodos <- bind_rows(
+  resultado_1 |> mutate(metodo = 'Calibração refeita (em sala)',
+                        criar = tempo_criar_1, estimar = tempo_estimar_1),
+  resultado_2 |> mutate(metodo = 'Pesos replicados (IBGE)',
+                        criar = tempo_criar_2, estimar = tempo_estimar_2),
+  resultado_3 |> mutate(metodo = 'V1032 direto',
+                        criar = tempo_criar_3, estimar = tempo_estimar_3)
+) |>
+  mutate(horas_cv = horas_cv * 100) |>
+  select(metodo, sexo, horas, horas_se, horas_cv, criar, estimar)
+
+comparacao_metodos |>
+  knitr::kable(
+    digits = c(0, 0, 2, 4, 2, 0, 0),
+    format.args = list(decimal.mark = ','),
+    col.names = c(
+      'Método', 'Sexo', 'Horas por semana', 'EP (horas)', 'CV (%)',
+      'Tempo para criar o desenho (s)', 'Tempo para estimar (s)'
+    )
+  )
 ```
+
+As estimativas são idênticas nos três métodos, porque todos usam o mesmo peso calibrado. O erro-padrão muda pouco, e o tempo de processamento muda bastante. O relatório usa a calibração refeita porque ela fica próxima do método do IBGE e permite estimar em segundos, com o desenho gravado num arquivo e só lido em sala.
 
 ## 7. Indicadores
 
@@ -644,6 +1679,7 @@ Pré-calculado: só roda com `gerar_base: true`, porque exige os pesos replicado
 
 ```{r}
 #| label: ind-trabalho
+
 # TODO: taxa de participação (1.8), taxa de desocupação (1.10),
 #       informalidade (1.9) e razão de rendimentos por grupo ocupacional (1.13)
 ```
@@ -652,6 +1688,7 @@ Pré-calculado: só roda com `gerar_base: true`, porque exige os pesos replicado
 
 ```{r}
 #| label: ind-educacao
+
 # TODO: nível de instrução da população de 25 anos ou mais (2.11)
 ```
 
@@ -659,6 +1696,7 @@ Pré-calculado: só roda com `gerar_base: true`, porque exige os pesos replicado
 
 ```{r}
 #| label: ind-afazeres
+
 # TODO: horas semanais em cuidados e afazeres domésticos (1.1), também por
 #       classes de rendimento domiciliar per capita (VD5008)
 ```
@@ -667,9 +1705,9 @@ Pré-calculado: só roda com `gerar_base: true`, porque exige os pesos replicado
 
 ```{r}
 #| label: validacao
-# TODO: comparar os resultados de 2022 com os números do informativo.
-#       Já conferido: horas de afazeres e cuidados de 11,71 (homens) e
-#       21,26 (mulheres), contra 11,7 e 21,3 no informativo
+
+# TODO: comparar os resultados calculados com os números do informativo.
+#       A publicação se refere a 2022: rodar só quando params$ano == 2022
 ```
 
 ## 8. Comparações
@@ -678,6 +1716,7 @@ Pré-calculado: só roda com `gerar_base: true`, porque exige os pesos replicado
 
 ```{r}
 #| label: territorio
+
 # TODO: Brasil, UFs selecionadas e capital, resto da RM e interior,
 #       com semáforo de CV
 ```
@@ -686,6 +1725,7 @@ Pré-calculado: só roda com `gerar_base: true`, porque exige os pesos replicado
 
 ```{r}
 #| label: testes
+
 # TODO: teste t com desenho e qui-quadrado de Rao-Scott
 ```
 
@@ -693,6 +1733,7 @@ Pré-calculado: só roda com `gerar_base: true`, porque exige os pesos replicado
 
 ```{r}
 #| label: regressao
+
 # TODO: sequência de modelos com svyglm e gráfico de coeficientes
 ```
 
@@ -702,5 +1743,6 @@ Pré-calculado: só roda com `gerar_base: true`, porque exige os pesos replicado
 
 ```{r}
 #| label: seu-indicador
+
 # TODO: indicador criado pela dupla
 ```

@@ -27,9 +27,15 @@ if(!require(pacman)) {
   install.packages('pacman')
 }
 
-pacman::p_load(dplyr, tidyr, stringr, ggplot2, readr, survey, srvyr, PNADcIBGE)
+pacman::p_load(
+  dplyr, tidyr, stringr, ggplot2, plotly, readr, survey, srvyr, PNADcIBGE
+)
 ```
 
-## 3. Baixe o projeto e a base
+## 3. Baixe o relatório e a base
 
-*Os links serão disponibilizados na página [Dados](dados.qmd).*
+[<i class="bi bi-download"></i> Baixar o relatório (.qmd)](downloads/relatorio.qmd){.btn .btn-primary}
+
+Depois de baixar, abra o arquivo no RStudio e clique em **Render**.
+
+*Os links da base de dados serão disponibilizados na página [Dados](dados.qmd).*
