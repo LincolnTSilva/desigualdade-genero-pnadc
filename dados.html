@@ -162,7 +162,7 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">Nesta página</h2>
    
   <ul>
-  <li><a href="#base-do-curso" id="toc-base-do-curso" class="nav-link active" data-scroll-target="#base-do-curso">Base do curso</a></li>
+  <li><a href="#arquivos-do-curso" id="toc-arquivos-do-curso" class="nav-link active" data-scroll-target="#arquivos-do-curso">Arquivos do curso</a></li>
   <li><a href="#como-a-base-foi-gerada" id="toc-como-a-base-foi-gerada" class="nav-link" data-scroll-target="#como-a-base-foi-gerada">Como a base foi gerada</a></li>
   </ul>
 </nav>
@@ -190,11 +190,36 @@ ul.task-list li input[type="checkbox"] {
 
 
 <p>O curso usa o arquivo anual da <strong>5ª visita da PNAD Contínua</strong>, que reúne trabalho, rendimentos, escolaridade e afazeres domésticos em uma única base.</p>
-<section id="base-do-curso" class="level2">
-<h2 class="anchored" data-anchor-id="base-do-curso">Base do curso</h2>
-<p>Uma versão reduzida dos microdados, com as variáveis usadas no curso, em <code>.csv.gz</code> e com as variáveis em códigos. Ela mantém todas as pessoas da amostra e as variáveis do desenho amostral. Os pesos replicados ficam num arquivo separado.</p>
-<p>Os arquivos ficam no Zenodo e são lidos diretamente pelo <a href="./relatorio.html">relatório</a> com o pacote <code>readr</code>.</p>
-<p><em>O link do Zenodo será disponibilizado aqui.</em></p>
+<section id="arquivos-do-curso" class="level2">
+<h2 class="anchored" data-anchor-id="arquivos-do-curso">Arquivos do curso</h2>
+<p>O curso usa dois arquivos, publicados no Zenodo e lidos diretamente pelo <a href="./relatorio.html">relatório</a>:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Arquivo</th>
+<th>Conteúdo</th>
+<th>Usado em</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Base do curso (<code>.csv.gz</code>)</td>
+<td>Versão reduzida dos microdados, com as variáveis usadas no curso, em códigos. Mantém todas as pessoas da amostra e as variáveis do desenho amostral</td>
+<td>Cálculos com o <code>dplyr</code> (blocos 4 e 5), lida com o <code>readr</code></td>
+</tr>
+<tr class="even">
+<td>Desenho amostral (<code>.rds</code>)</td>
+<td>O desenho com a calibração refeita, já com as variáveis derivadas do bloco 4. Criá-lo leva alguns minutos; em sala, ele é só lido</td>
+<td>Estimativas com precisão, testes e regressão (blocos 6 a 9), lido com <code>readRDS()</code></td>
+</tr>
+</tbody>
+</table>
+<p><em>Os links do Zenodo serão disponibilizados aqui.</em></p>
 </section>
 <section id="como-a-base-foi-gerada" class="level2">
 <h2 class="anchored" data-anchor-id="como-a-base-foi-gerada">Como a base foi gerada</h2>
