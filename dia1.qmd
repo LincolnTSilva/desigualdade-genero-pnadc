@@ -14,7 +14,7 @@ O primeiro dia termina com uma estimativa pontual e um gráfico, e deixa em aber
 |---|---|---|
 | 0:00–0:15 | Abertura | Apresentação, objetivos e demonstração do relatório final pronto |
 | 0:15–0:30 | 1. Enquadramento | CMIG e ODS 5 a partir da publicação do IBGE. Sexo e gênero na PNAD. O que a PNAD mede e o que exige outras fontes |
-| 0:30–1:00 | 2. Conhecendo a PNAD Contínua | Desenho amostral, arquivo da 5ª visita, questionário, dicionário e domínios de estimação |
+| 0:30–1:00 | 2. Conhecendo a PNAD Contínua | Desenho amostral, microdados trimestrais, questionário, dicionário e domínios de estimação |
 | 1:00–1:10 | *Intervalo* | |
 | 1:10–1:40 | 3. O projeto e os dados | Projeto reprodutível, renderização do relatório com parâmetros e leitura da base |
 | 1:40–2:20 | 4. Recodificação e variáveis derivadas | Idade, cor ou raça, escolaridade, território, condição de atividade e variável de domicílio |
@@ -34,7 +34,7 @@ A PNAD Contínua registra o sexo da pessoa em duas categorias. Os indicadores do
 
 ## 2. Conhecendo a PNAD Contínua
 
-*Texto a desenvolver:* desenho amostral (estratos, UPAs, pesos e calibração), divulgação trimestral e arquivo da 5ª visita, questionário, dicionário, variáveis derivadas e domínios de estimação.
+*Texto a desenvolver:* desenho amostral (estratos, UPAs, pesos e calibração), microdados trimestrais, questionário, dicionário, variáveis derivadas e domínios de estimação.
 
 ## 3. O projeto e os dados
 

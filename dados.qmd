@@ -2,7 +2,7 @@
 title: "Dados"
 ---
 
-O curso usa o arquivo anual da **5ª visita da PNAD Contínua**, que reúne trabalho, rendimentos, escolaridade e afazeres domésticos em uma única base.
+O curso usa os **microdados trimestrais da PNAD Contínua**, que reúnem trabalho, rendimentos e escolaridade em uma única base.
 
 ## Arquivos do curso
 

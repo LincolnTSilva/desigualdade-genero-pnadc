@@ -12,7 +12,7 @@ Ao final, você reproduz um relatório completo e acrescenta a ele um indicador 
 
 ## Como o curso funciona
 
-Começamos pelo fim: na abertura, você vê o relatório pronto. Nos dois dias, desmontamos e remontamos esse relatório, etapa por etapa. No encerramento, o mesmo relatório é atualizado para outro ano trocando apenas um parâmetro.
+Começamos pelo fim: na abertura, você vê o relatório pronto. Nos dois dias, desmontamos e remontamos esse relatório, etapa por etapa. No encerramento, o mesmo relatório é gerado para outro trimestre ou outra UF, trocando apenas os parâmetros.
 
 ::: {.grid}
 
@@ -38,7 +38,7 @@ Começamos pelo fim: na abertura, você vê o relatório pronto. Nos dois dias, 
 - Reprodução do relatório
 - Comparações, testes e regressão
 - Atividade: um indicador novo
-- Atualização para o ano mais recente
+- Atualização para outro trimestre ou UF
 
 [Ver programa do Dia 2 →](dia2.qmd)
 :::
@@ -66,7 +66,7 @@ Começamos pelo fim: na abertura, você vê o relatório pronto. Nos dois dias, 
 | **Pré-requisito** | Alguma familiaridade com R |
 | **Programas** | R, RStudio e Quarto |
 | **Pacotes do R** | `dplyr`, `tidyr`, `stringr`, `readr`, `ggplot2`, `plotly`, `survey`, `srvyr` e `PNADcIBGE` |
-| **Dados** | PNAD Contínua, arquivo anual da 5ª visita (IBGE) |
+| **Dados** | PNAD Contínua, microdados trimestrais (IBGE) |
 
 ::: {.callout-tip}
 ## Antes do curso

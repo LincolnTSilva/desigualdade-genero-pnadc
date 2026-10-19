@@ -11,7 +11,7 @@ title: "Materiais"
 
 ## Relatório final
 
-[Relatório em Quarto](relatorio.qmd), parametrizado por ano e por uma lista de UFs, com os indicadores do curso.
+[Relatório em Quarto](relatorio.qmd), parametrizado por ano, trimestre e uma lista de UFs, com os indicadores do curso.
 
 [<i class="bi bi-download"></i> Baixar o relatório (.qmd)](downloads/relatorio.qmd){.btn .btn-primary}
 
@@ -36,7 +36,7 @@ As variáveis da PNAD Contínua usadas no curso, com nome, descrição e categor
 | Informalidade no trabalho não agrícola (1.9) | Taxa | Núcleo |
 | Rendimento médio e razão entre mulheres e homens por grupo ocupacional (1.13) | Média e razão | Núcleo |
 | Nível de instrução da população de 25 anos ou mais (2.11) | Distribuição | Núcleo |
-| Horas semanais em cuidados de pessoas e afazeres domésticos (1.1) | Média | Núcleo |
+| Horas habitualmente trabalhadas por semana | Média | Núcleo |
 | Nível de ocupação de 25 a 54 anos, com e sem criança de até 6 anos (1.15) | Taxa | Exercício |
 | Ocupação em tempo parcial (1.14) | Taxa | Exercício |
 | Mulheres em cargos gerenciais (4.3) | Taxa | Exercício |

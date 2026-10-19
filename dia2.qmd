@@ -4,7 +4,7 @@ subtitle: "3 horas · da incerteza das estimativas ao relatório atualizado"
 code-tools: true
 ---
 
-O segundo dia acrescenta a incerteza às estimativas, reproduz o relatório e termina com a atualização do relatório para o ano mais recente.
+O segundo dia acrescenta a incerteza às estimativas, reproduz o relatório e termina com o relatório gerado para outro trimestre ou outra UF.
 
 ## Programa
 
@@ -14,11 +14,11 @@ O segundo dia acrescenta a incerteza às estimativas, reproduz o relatório e te
 |---|---|---|
 | 0:00–0:10 | Retomada | Revisão do Dia 1 e dúvidas |
 | 0:10–0:45 | 6. O desenho amostral com srvyr | Leitura do desenho calibrado, intervalo de confiança e CV, comparação entre dplyr e srvyr |
-| 0:45–1:25 | 7. Reproduzindo o relatório | Taxa, média, razão e distribuição, com validação pelos números do IBGE |
+| 0:45–1:25 | 7. Reproduzindo o relatório | Taxa, média, razão e distribuição |
 | 1:25–1:35 | *Intervalo* | |
 | 1:35–2:20 | 8. Comparar com rigor | Recortes territoriais, semáforo de CV, testes de hipóteses e regressão com svyglm |
 | 2:20–2:50 | 9. Atividade: um indicador novo | Em duplas, com a ficha do indicador |
-| 2:50–3:00 | Encerramento | Atualização do relatório para o ano mais recente |
+| 2:50–3:00 | Encerramento | O relatório para outro trimestre ou outra UF |
 
 :::
 
@@ -52,7 +52,7 @@ library(srvyr)
 
 ## 7. Reproduzindo o relatório
 
-*Texto a desenvolver:* as quatro famílias de indicador e a validação com os números publicados pelo IBGE.
+*Texto a desenvolver:* as quatro famílias de indicador.
 
 ```{r}
 #| label: indicadores
@@ -108,4 +108,4 @@ Em duplas, preencham a ficha do indicador, calculem o indicador com o desenho am
 
 ## Encerramento
 
-O mesmo relatório, renderizado para o ano mais recente, trocando apenas o parâmetro `ano`.
+O mesmo relatório, renderizado para outro trimestre ou outra UF, trocando apenas os parâmetros `ano`, `trimestre` e `ufs`.

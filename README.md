@@ -6,7 +6,7 @@
 
 Minicurso de 6 horas, em 2 encontros de 3 horas, sobre como construir, estimar e interpretar indicadores de desigualdade de gênero com os microdados da PNAD Contínua do IBGE, em um fluxo reprodutível com R e Quarto.
 
-Os indicadores seguem o Conjunto Mínimo de Indicadores de Gênero (CMIG) das Nações Unidas e a publicação *Estatísticas de Gênero* do IBGE. O curso usa o arquivo anual da 5ª visita da PNAD Contínua, o único com o módulo de cuidados de pessoas e afazeres domésticos, e trata o desenho amostral com os pacotes `survey` e `srvyr`.
+Os indicadores seguem o Conjunto Mínimo de Indicadores de Gênero (CMIG) das Nações Unidas e a publicação *Estatísticas de Gênero* do IBGE. O curso usa os microdados trimestrais da PNAD Contínua e trata o desenho amostral com os pacotes `survey` e `srvyr`.
 
 ## Estrutura do repositório
 
@@ -14,7 +14,7 @@ Os indicadores seguem o Conjunto Mínimo de Indicadores de Gênero (CMIG) das Na
 |---|---|
 | `index.qmd` | Página inicial do site |
 | `dia1.qmd`, `dia2.qmd` | Material de aula de cada dia |
-| `relatorio.qmd` | Relatório final, parametrizado por ano e UF |
+| `relatorio.qmd` | Relatório final, parametrizado por ano, trimestre e UF |
 | `preparacao.qmd`, `dados.qmd`, `materiais.qmd`, `referencias.qmd`, `about.qmd` | Demais páginas do site |
 | `_quarto.yml`, `tema.scss`, `styles.css` | Configuração e aparência do site |
 | `_freeze/` | Resultados guardados dos cálculos, usados na publicação do site |
