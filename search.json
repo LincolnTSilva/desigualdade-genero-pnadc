@@ -1,12 +1,5 @@
 [
   {
-    "objectID": "relatorio.html",
-    "href": "relatorio.html",
-    "title": "Indicadores de desigualdade de gênero",
-    "section": "",
-    "text": "NotaComo usar este relatório\n\n\n\nCom gerar_base: false (padrão), o relatório lê dois arquivos publicados no Zenodo: a base do curso, com o readr, e o desenho amostral, com o readRDS(). Se os arquivos já estiverem na pasta dados, eles são lidos de lá. Os blocos que geram a base e o desenho a partir dos microdados do IBGE aparecem no relatório, mas só são executados com gerar_base: true.\nO relatório leva alguns minutos para ser gerado, porque cada estimativa com o desenho amostral (blocos 6 a 9) calcula o erro-padrão com toda a amostra. Por isso, os blocos mais demorados usam cache: na primeira vez, o resultado é calculado e guardado na pasta relatorio_cache; nas seguintes, é só lido de lá. Um bloco com cache é calculado de novo quando o seu código muda, quando um parâmetro muda ou quando o arquivo do desenho é gerado de novo. Para recalcular tudo, basta apagar a pasta relatorio_cache."
-  },
-  {
     "objectID": "relatorio.html#enquadramento",
     "href": "relatorio.html#enquadramento",
     "title": "Indicadores de desigualdade de gênero",
