@@ -235,7 +235,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>O segundo dia acrescenta a incerteza às estimativas, reproduz o relatório e termina com a atualização do relatório para o ano mais recente.</p>
+<p>O segundo dia acrescenta a incerteza às estimativas, reproduz o relatório e termina com o relatório gerado para outro trimestre ou outra UF.</p>
 <section id="programa" class="level2">
 <h2 class="anchored" data-anchor-id="programa">Programa</h2>
 <div class="programa">
@@ -266,7 +266,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td>0:45–1:25</td>
 <td>7. Reproduzindo o relatório</td>
-<td>Taxa, média, razão e distribuição, com validação pelos números do IBGE</td>
+<td>Taxa, média, razão e distribuição</td>
 </tr>
 <tr class="even">
 <td>1:25–1:35</td>
@@ -286,7 +286,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td>2:50–3:00</td>
 <td>Encerramento</td>
-<td>Atualização do relatório para o ano mais recente</td>
+<td>O relatório para outro trimestre ou outra UF</td>
 </tr>
 </tbody>
 </table>
@@ -311,7 +311,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="reproduzindo-o-relatório" class="level2">
 <h2 class="anchored" data-anchor-id="reproduzindo-o-relatório">7. Reproduzindo o relatório</h2>
-<p><em>Texto a desenvolver:</em> as quatro famílias de indicador e a validação com os números publicados pelo IBGE.</p>
+<p><em>Texto a desenvolver:</em> as quatro famílias de indicador.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Código a desenvolver: taxa, média, razão e distribuição</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -365,7 +365,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="encerramento" class="level2">
 <h2 class="anchored" data-anchor-id="encerramento">Encerramento</h2>
-<p>O mesmo relatório, renderizado para o ano mais recente, trocando apenas o parâmetro <code>ano</code>.</p>
+<p>O mesmo relatório, renderizado para outro trimestre ou outra UF, trocando apenas os parâmetros <code>ano</code>, <code>trimestre</code> e <code>ufs</code>.</p>
 
 
 <!-- -->
@@ -830,7 +830,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="an">code-tools:</span><span class="co"> true</span></span>
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
 <span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>O segundo dia acrescenta a incerteza às estimativas, reproduz o relatório e termina com a atualização do relatório para o ano mais recente.</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>O segundo dia acrescenta a incerteza às estimativas, reproduz o relatório e termina com o relatório gerado para outro trimestre ou outra UF.</span>
 <span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="fu">## Programa</span></span>
 <span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a></span>
@@ -840,11 +840,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|</span></span>
 <span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 0:00–0:10 <span class="pp">|</span> Retomada <span class="pp">|</span> Revisão do Dia 1 e dúvidas <span class="pp">|</span></span>
 <span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 0:10–0:45 <span class="pp">|</span> 6. O desenho amostral com srvyr <span class="pp">|</span> Leitura do desenho calibrado, intervalo de confiança e CV, comparação entre dplyr e srvyr <span class="pp">|</span></span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 0:45–1:25 <span class="pp">|</span> 7. Reproduzindo o relatório <span class="pp">|</span> Taxa, média, razão e distribuição, com validação pelos números do IBGE <span class="pp">|</span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 0:45–1:25 <span class="pp">|</span> 7. Reproduzindo o relatório <span class="pp">|</span> Taxa, média, razão e distribuição <span class="pp">|</span></span>
 <span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 1:25–1:35 <span class="pp">|</span> *Intervalo* <span class="pp">|</span> <span class="pp">|</span></span>
 <span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 1:35–2:20 <span class="pp">|</span> 8. Comparar com rigor <span class="pp">|</span> Recortes territoriais, semáforo de CV, testes de hipóteses e regressão com svyglm <span class="pp">|</span></span>
 <span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 2:20–2:50 <span class="pp">|</span> 9. Atividade: um indicador novo <span class="pp">|</span> Em duplas, com a ficha do indicador <span class="pp">|</span></span>
-<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 2:50–3:00 <span class="pp">|</span> Encerramento <span class="pp">|</span> Atualização do relatório para o ano mais recente <span class="pp">|</span></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 2:50–3:00 <span class="pp">|</span> Encerramento <span class="pp">|</span> O relatório para outro trimestre ou outra UF <span class="pp">|</span></span>
 <span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a></span>
@@ -878,7 +878,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb8-58"><a href="#cb8-58" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-59"><a href="#cb8-59" aria-hidden="true" tabindex="-1"></a><span class="fu">## 7. Reproduzindo o relatório</span></span>
 <span id="cb8-60"><a href="#cb8-60" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-61"><a href="#cb8-61" aria-hidden="true" tabindex="-1"></a>*Texto a desenvolver:* as quatro famílias de indicador e a validação com os números publicados pelo IBGE.</span>
+<span id="cb8-61"><a href="#cb8-61" aria-hidden="true" tabindex="-1"></a>*Texto a desenvolver:* as quatro famílias de indicador.</span>
 <span id="cb8-62"><a href="#cb8-62" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-65"><a href="#cb8-65" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
 <span id="cb8-66"><a href="#cb8-66" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: indicadores</span></span>
@@ -934,7 +934,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb8-122"><a href="#cb8-122" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-123"><a href="#cb8-123" aria-hidden="true" tabindex="-1"></a><span class="fu">## Encerramento</span></span>
 <span id="cb8-124"><a href="#cb8-124" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-125"><a href="#cb8-125" aria-hidden="true" tabindex="-1"></a>O mesmo relatório, renderizado para o ano mais recente, trocando apenas o parâmetro <span class="in">`ano`</span>.</span>
+<span id="cb8-125"><a href="#cb8-125" aria-hidden="true" tabindex="-1"></a>O mesmo relatório, renderizado para outro trimestre ou outra UF, trocando apenas os parâmetros <span class="in">`ano`</span>, <span class="in">`trimestre`</span> e <span class="in">`ufs`</span>.</span>
 </code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
