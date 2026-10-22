@@ -806,7 +806,7 @@ window.addEventListener('load', function () {
 ::: {.callout-note}
 ## Cuidados na leitura da tabela
 - **Pessoas ocupadas:** nos indicadores calculados entre os ocupados (informalidade, tempo parcial, posição na ocupação, setor, cargos gerenciais e rendimento), a população são os ocupados de 14 anos ou mais, o padrão do IBGE.
-- **Frequência escolar líquida (anos finais do fundamental, ensino médio e ensino superior):** é uma aproximação dos indicadores 2.3 e 2.4 do CMIG. Pela definição da ONU, esses indicadores são **taxas brutas de matrícula**: no numerador entram os matriculados na etapa de qualquer idade, e no denominador, a população na idade prevista para ela. Com o atraso escolar no Brasil, muitos alunos estão numa etapa acima da idade prevista, e a taxa bruta passa de 100%, o que dificulta a leitura. Por isso, decidiu-se calcular a frequência líquida: conta só quem está na idade prevista para a etapa **e** frequenta essa etapa, no ensino regular ou na EJA (no superior, a graduação e a pós-graduação). Na EJA do fundamental, só entra quem está do 6º ao 9º ano; quem estuda em cursos organizados de outra forma (por semestre, por exemplo) pode ficar de fora.
+- **Frequência escolar líquida (anos finais do fundamental, ensino médio e ensino superior):** é uma aproximação dos indicadores 2.3 e 2.4 do CMIG. Pela definição da ONU, esses indicadores são **taxas brutas de matrícula**: no numerador entram os matriculados na etapa de qualquer idade, e no denominador, a população na idade prevista para ela. Com o atraso escolar no Brasil, muitos alunos estão com idade prevista acima da esperada para determinado ano letivo, e a taxa bruta passa de 100%, o que dificulta a leitura. Por isso, decidiu-se calcular a frequência líquida: conta só quem está na idade prevista para a etapa **e** frequenta essa etapa, no ensino regular ou na EJA (no superior, a graduação e a pós-graduação). Na EJA do fundamental, só entra quem está do 6º ao 9º ano; quem estuda em cursos organizados de outra forma (por semestre, por exemplo) pode ficar de fora.
 - **Conclusão dos anos iniciais do fundamental (2.5):** a PNAD Contínua não pergunta diretamente se a pessoa concluiu os anos iniciais. O indicador usa os anos de estudo (`VD3005`), que o IBGE já padroniza para o ensino fundamental de 9 anos: quem tem 5 anos de estudo ou mais concluiu o 5º ano, o último dos anos iniciais.
 - **Jovens que não estudam nem estão ocupados:** a publicação *Estatísticas de Gênero* do IBGE também exclui quem estava em curso de qualificação profissional, informação que não está na base do curso. Por isso, o indicador calculado aqui inclui mais pessoas e tende a ficar acima do publicado.
 :::
@@ -1057,71 +1057,85 @@ indicadores_sexo <- pnadc_recortes |>
   
   # Trabalho
   summarise(
+    # CMIG 1.3
     participacao_15 = taxa(
       numerador = idade >= 15 & forca_trabalho == 1,
       denominador = idade >= 15,
       peso = V1028
     ),
+    # CMIG 1.3
     participacao_15_24 = taxa(
       numerador = idade >= 15 & idade <= 24 & forca_trabalho == 1,
       denominador = idade >= 15 & idade <= 24,
       peso = V1028
     ),
+    # Sem indicador CMIG correspondente
     nivel_ocupacao = taxa(
       numerador = idade >= 14 & ocupada == 1,
       denominador = idade >= 14,
       peso = V1028
     ),
+    # CMIG 1.15
     ocupacao_com_crianca = taxa(
       numerador = idade >= 25 & idade <= 54 & crianca_ate_6 == 1 & ocupada == 1,
       denominador = idade >= 25 & idade <= 54 & crianca_ate_6 == 1,
       peso = V1028
     ),
+    # CMIG 1.15
     ocupacao_sem_crianca = taxa(
       numerador = idade >= 25 & idade <= 54 & crianca_ate_6 == 0 & ocupada == 1,
       denominador = idade >= 25 & idade <= 54 & crianca_ate_6 == 0,
       peso = V1028
     ),
+    # CMIG 1.10
     desocupacao = taxa(
       numerador = forca_trabalho == 1 & desocupada == 1,
       denominador = forca_trabalho == 1,
       peso = V1028
     ),
+    # CMIG 1.9
     informalidade = taxa(
       numerador = ocupada == 1 & atividade_agricola == 0 & informal == 1,
       denominador = ocupada == 1 & atividade_agricola == 0,
       peso = V1028
     ),
+    # CMIG 1.14
     tempo_parcial = taxa(
       numerador = ocupada == 1 & VD4031 <= 30,
       denominador = ocupada == 1,
       peso = V1028
     ),
+    # CMIG 1.4
     conta_propria = taxa(
       numerador = ocupada == 1 & VD4009 == 9,
       denominador = ocupada == 1,
       peso = V1028
     ),
+    # CMIG 1.5
     familiar_auxiliar = taxa(
       numerador = ocupada == 1 & VD4009 == 10,
       denominador = ocupada == 1,
       peso = V1028
     ),
+    # CMIG 1.6
     empregador = taxa(
       numerador = ocupada == 1 & VD4009 == 8,
       denominador = ocupada == 1,
       peso = V1028
     ),
+    # CMIG 1.8
     setor_agropecuaria = taxa(
       numerador = ocupada == 1 & !is.na(setor) & setor == 'Agropecuária',
       denominador = ocupada == 1 & !is.na(setor),
       peso = V1028
     ),
+    # CMIG 1.8
     setor_industria = taxa(
       numerador = ocupada == 1 & !is.na(setor) & setor == 'Indústria',
       denominador = ocupada == 1 & !is.na(setor),
       peso = V1028
     ),
+    # CMIG 1.8
     setor_servicos = taxa(
       numerador = ocupada == 1 & !is.na(setor) & setor == 'Serviços',
       denominador = ocupada == 1 & !is.na(setor),
@@ -1129,6 +1143,7 @@ indicadores_sexo <- pnadc_recortes |>
     ),
 
     # Rendimento
+    # Sem indicador CMIG (a razão entre os sexos é o 1.13)
     rendimento = media(
       valor = VD4019,
       denominador = ocupada == 1,
@@ -1136,26 +1151,31 @@ indicadores_sexo <- pnadc_recortes |>
     ),
 
     # Educação
+    # CMIG 2.11
     instrucao_fundamental_incompleto = taxa(
       numerador = idade >= 25 & VD3004 %in% 1:2,
       denominador = idade >= 25,
       peso = V1028
     ),
+    # CMIG 2.11
     instrucao_medio_incompleto = taxa(
       numerador = idade >= 25 & VD3004 %in% 3:4,
       denominador = idade >= 25,
       peso = V1028
     ),
+    # CMIG 2.11
     instrucao_superior_incompleto = taxa(
       numerador = idade >= 25 & VD3004 %in% 5:6,
       denominador = idade >= 25,
       peso = V1028
     ),
+    # CMIG 2.11
     instrucao_superior_completo = taxa(
       numerador = idade >= 25 & VD3004 == 7,
       denominador = idade >= 25,
       peso = V1028
     ),
+    # Aproximação do CMIG 2.3
     # Frequência escolar líquida: pessoas na idade da etapa que frequentam
     # essa etapa. Anos finais do fundamental: 6º ao 9º ano, no regular (04)
     # e na EJA (05)
@@ -1165,34 +1185,40 @@ indicadores_sexo <- pnadc_recortes |>
       denominador = idade >= 11 & idade <= 14,
       peso = V1028
     ),
+    # Aproximação do CMIG 2.3
     # Ensino médio: regular (06) e EJA (07)
     frequencia_liquida_medio = taxa(
       numerador = idade >= 15 & idade <= 17 & V3003A %in% c(6, 7),
       denominador = idade >= 15 & idade <= 17,
       peso = V1028
     ),
+    # Aproximação do CMIG 2.4
     # Ensino superior: graduação (08) e pós-graduação (09 a 11)
     frequencia_liquida_superior = taxa(
       numerador = idade >= 18 & idade <= 24 & V3003A %in% 8:11,
       denominador = idade >= 18 & idade <= 24,
       peso = V1028
     ),
+    # CMIG 2.5
     # Anos iniciais do fundamental (1º ao 5º ano): 5 anos de estudo ou mais
     conclusao_anos_iniciais = taxa(
       numerador = idade >= 13 & idade <= 15 & VD3005 >= 5,
       denominador = idade >= 13 & idade <= 15,
       peso = V1028
     ),
+    # CMIG 2.6
     conclusao_fundamental = taxa(
       numerador = idade >= 17 & idade <= 19 & VD3004 >= 3,
       denominador = idade >= 17 & idade <= 19,
       peso = V1028
     ),
+    # Complementar ao CMIG 2.6
     conclusao_medio = taxa(
       numerador = idade >= 20 & idade <= 22 & VD3004 >= 5,
       denominador = idade >= 20 & idade <= 22,
       peso = V1028
     ),
+    # CMIG 1.7
     nao_estuda_nem_ocupado = taxa(
       numerador = idade >= 15 & idade <= 24 & estuda == 0 & ocupada == 0,
       denominador = idade >= 15 & idade <= 24,
@@ -1214,21 +1240,25 @@ indicadores_comparacao <- pnadc_recortes |>
   ) |>
   group_by(recorte) |>
   summarise(
+    # CMIG 4.3 (gerência sênior e intermediária)
     mulheres_gerencia = taxa(
       numerador = cargo_gerencial == 1 & mulher == 1,
       denominador = cargo_gerencial == 1,
       peso = V1028
     ),
+    # CMIG 4.3 (todos os cargos gerenciais)
     mulheres_gerencia_total = taxa(
       numerador = cargo_gerencial_total == 1 & mulher == 1,
       denominador = cargo_gerencial_total == 1,
       peso = V1028
     ),
+    # Sem indicador CMIG correspondente
     mulheres_domesticas = taxa(
       numerador = ocupada == 1 & VD4009 %in% 3:4 & mulher == 1,
       denominador = ocupada == 1 & VD4009 %in% 3:4,
       peso = V1028
     ),
+    # CMIG 1.13
     # Razão entre duas médias: a das mulheres e a dos homens ocupados
     razao_rendimento = media(
       valor = VD4019,
@@ -1517,6 +1547,45 @@ O pacote `srvyr` guarda essa estrutura num objeto de **desenho amostral**, e cal
 O desenho deste relatório parte do peso sem calibração (`V1027`), declara os dois estágios de seleção (`UPA` e `ID_DOMICILIO`) e os estratos (`Estrato`), e **refaz a calibração** pelas projeções de população: por domínio geográfico (`posest`, com os totais de `V1029`) e por sexo e idade (`posest_sxi`, com os totais de `V1033`). É o que faz a função `pnadc_design()`, do pacote `PNADcIBGE`. A calibração faz os totais estimados baterem com as projeções e reduz a variância das estimativas.
 
 Criar esse desenho leva alguns minutos, porque a calibração é refeita para as `r format(nrow(pnadc), big.mark = '.', decimal.mark = ',')` pessoas da amostra. Por isso, ele é criado uma única vez, gravado num arquivo `.rds` e publicado no Zenodo junto com a base. Em sala, o desenho é só lido.
+
+::: {.callout-tip}
+## Um atalho: o desenho direto do `get_pnadc()`
+O pacote `PNADcIBGE` consegue ir dos microdados ao desenho num passo só. O argumento `design` do `get_pnadc()` vale `TRUE` por padrão: a função baixa os dados e já devolve o desenho amostral pronto. No bloco 3, este relatório usou `design = FALSE` de propósito.
+
+```{mermaid}
+%%| fig-cap: "Dois caminhos dos microdados até o desenho amostral."
+
+%%{init: {"flowchart": {"rankSpacing": 35, "nodeSpacing": 25}}}%%
+flowchart LR
+  A["get_pnadc()<br>design = FALSE"] --> B["Data frame<br>+ variáveis do bloco 4"]
+  B --> D["pnadc_design()"]
+  D --> F["Desenho amostral<br>EP, IC e CV"]
+  E["get_pnadc()<br>design = TRUE (padrão)"] --> F
+
+  classDef curso fill:#ece9f5,stroke:#5b4a9b,color:#2e2550
+  classDef atalho fill:#fdeee4,stroke:#e8793a,color:#6b3412
+  class A,B,D curso
+  class E atalho
+```
+
+O relatório segue o caminho mais longo por dois motivos:
+
+- o bloco 5 calcula as estimativas com o `dplyr`, que trabalha com um data frame, não com um desenho;
+- em sala, a base e o desenho são só lidos, sem baixar os microdados.
+
+No atalho, o desenho também sai de outro jeito. O `get_pnadc()` sempre traz os 200 pesos replicados e, com eles na base, o desenho usa o *bootstrap*, como o IBGE, e não a linearização deste relatório (veja a caixa "Um erro-padrão um pouco diferente do divulgado pelo IBGE", mais abaixo). As estimativas são as mesmas, os erros-padrão podem ficar um pouco diferentes, e cada estimativa leva mais tempo. As variáveis novas também podem ser criadas com `mutate()` direto no desenho quando usamos o pacote `srvyr` com a função `as_survey()`:
+
+```r
+desenho_direto <- get_pnadc(
+  year    = ano,
+  quarter = trimestre,
+  vars    = vars_curso,
+  labels  = FALSE    # design = TRUE é o padrão
+) |>
+  as_survey() |>
+  mutate(mulher = if_else(V2007 == 2, 1, 0))
+```
+:::
 
 ```{r}
 #| label: gerar-desenho

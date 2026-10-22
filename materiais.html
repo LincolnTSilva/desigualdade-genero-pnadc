@@ -217,91 +217,511 @@ ul.task-list li input[type="checkbox"] {
 <h2 class="anchored" data-anchor-id="relatório-final">Relatório final</h2>
 <p><a href="./relatorio.html">Relatório em Quarto</a>, parametrizado por ano, trimestre e uma lista de UFs, com os indicadores do curso.</p>
 <p><a href="downloads/relatorio.qmd" class="btn btn-primary"><i class="bi bi-download"></i> Baixar o relatório (.qmd)</a></p>
-<p>Depois de baixar, abra o arquivo no RStudio e clique em <strong>Render</strong>. Os dados são lidos do Zenodo, pelos links indicados nos parâmetros do cabeçalho.</p>
+<p>Depois de baixar, é possível gerar o relatório com os parâmetros pré-definidos abrindo o arquivo no RStudio e clicar em <strong>Render</strong>. Os dados são lidos do Zenodo pelos links indicados nos parâmetros do cabeçalho, localmente ou usando o pacote <code>PNADcIBGE</code>.</p>
 </section>
 <section id="ficha-de-indicador" class="level2">
 <h2 class="anchored" data-anchor-id="ficha-de-indicador">Ficha de indicador</h2>
-<p>Modelo para a atividade do bloco 9, disponível no <a href="./dia2.html#atividade-um-indicador-novo">material do Dia 2</a>. O bloco 9 do <a href="./relatorio.html">relatório</a> traz a ficha preenchida com um exemplo e o código completo, para servir de ponto de partida.</p>
+<p>Modelo para a atividade do bloco 9, disponível no <a href="./dia2.html#seu-indicador">material do Dia 2</a>. O bloco 9 do <a href="./relatorio.html">relatório</a> traz a ficha preenchida com um exemplo e o código completo, para servir de ponto de partida.</p>
 </section>
 <section id="dicionário-resumido" class="level2">
 <h2 class="anchored" data-anchor-id="dicionário-resumido">Dicionário resumido</h2>
-<p>As variáveis da PNAD Contínua usadas no curso, com nome, descrição e categorias.</p>
-<p><em>Em preparação.</em></p>
-</section>
-<section id="indicadores-trabalhados" class="level2">
-<h2 class="anchored" data-anchor-id="indicadores-trabalhados">Indicadores trabalhados</h2>
+<p>As variáveis da PNAD Contínua usadas no curso, com nome, descrição e categorias, como no bloco 3 do <a href="./relatorio.html">relatório</a>. O dicionário completo está na <a href="https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/Documentacao/">página de documentação dos microdados trimestrais</a> do IBGE.</p>
 <table class="caption-top table">
-<colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
-</colgroup>
+<caption>Fonte: IBGE, dicionário dos microdados trimestrais da PNAD Contínua. Nas variáveis com “Não aplicável”, o valor fica vazio (<code>NA</code>) para as pessoas fora do público da pergunta, por exemplo menores de 14 anos nas variáveis de trabalho.</caption>
 <thead>
 <tr class="header">
-<th>Indicador (código CMIG)</th>
-<th>Tipo</th>
-<th>Papel no curso</th>
+<th>Grupo</th>
+<th>Variável</th>
+<th>Descrição</th>
+<th>Categorias ou valores</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>Taxa de participação na força de trabalho (1.3)</td>
+<td>Chave</td>
+<td><code>Ano</code></td>
+<td>Ano de referência</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>Chave</td>
+<td><code>Trimestre</code></td>
+<td>Trimestre de referência</td>
+<td>1 a 4</td>
+</tr>
+<tr class="odd">
+<td>Chave</td>
+<td><code>UPA</code></td>
+<td>Unidade Primária de Amostragem</td>
+<td>UF (2 dígitos) + número sequencial (6) + dígito verificador (1)</td>
+</tr>
+<tr class="even">
+<td>Chave</td>
+<td><code>V1008</code></td>
+<td>Número de seleção do domicílio</td>
+<td>01 a 14</td>
+</tr>
+<tr class="odd">
+<td>Chave</td>
+<td><code>V1014</code></td>
+<td>Painel (grupo de amostra)</td>
+<td>01 a 99</td>
+</tr>
+<tr class="even">
+<td>Chave</td>
+<td><code>V2003</code></td>
+<td>Número de ordem da pessoa no domicílio</td>
+<td>01 a 30</td>
+</tr>
+<tr class="odd">
+<td>Localização</td>
+<td><code>UF</code></td>
+<td>Unidade da Federação</td>
+<td>Código IBGE da UF (33 = Rio de Janeiro)</td>
+</tr>
+<tr class="even">
+<td>Localização</td>
+<td><code>V1022</code></td>
+<td>Situação do domicílio</td>
+<td>1 Urbana; 2 Rural</td>
+</tr>
+<tr class="odd">
+<td>Localização</td>
+<td><code>V1023</code></td>
+<td>Tipo de área. Junto com a <code>UF</code>, identifica a capital e a região metropolitana de cada UF</td>
+<td>1 Capital; 2 Resto da RM; 3 Resto da RIDE; 4 Resto da UF</td>
+</tr>
+<tr class="even">
+<td>Desenho</td>
+<td><code>Estrato</code></td>
+<td>Estrato de seleção da amostra</td>
+<td>As 2 primeiras posições são o código da UF</td>
+</tr>
+<tr class="odd">
+<td>Desenho</td>
+<td><code>ID_DOMICILIO</code></td>
+<td>Identificação do domicílio, a unidade do 2º estágio da amostra. Criada pelo <code>PNADcIBGE</code> na leitura</td>
+<td><code>UPA</code> + <code>V1008</code> + <code>V1014</code></td>
+</tr>
+<tr class="even">
+<td>Desenho</td>
+<td><code>V1027</code></td>
+<td>Peso do trimestre <strong>sem</strong> calibração pela projeção de população</td>
+<td>Com correção de não entrevista</td>
+</tr>
+<tr class="odd">
+<td>Desenho</td>
+<td><code>V1028</code></td>
+<td>Peso do trimestre <strong>com</strong> calibração pela projeção de população</td>
+<td>Com correção de não entrevista</td>
+</tr>
+<tr class="even">
+<td>Desenho</td>
+<td><code>posest</code></td>
+<td>Domínios de projeção geográficos</td>
+<td>UF (2) + tipo de área <code>V1023</code> (1)</td>
+</tr>
+<tr class="odd">
+<td>Desenho</td>
+<td><code>V1029</code></td>
+<td>Projeção da população por domínio geográfico</td>
+<td>Total populacional de cada <code>posest</code></td>
+</tr>
+<tr class="even">
+<td>Desenho</td>
+<td><code>posest_sxi</code></td>
+<td>Domínios de projeção por sexo e idade</td>
+<td>Sexo (1) + grupo de idade (2)</td>
+</tr>
+<tr class="odd">
+<td>Desenho</td>
+<td><code>V1033</code></td>
+<td>Projeção da população por sexo e idade</td>
+<td>Total populacional de cada <code>posest_sxi</code></td>
+</tr>
+<tr class="even">
+<td>Pessoa</td>
+<td><code>V2005</code></td>
+<td>Condição no domicílio</td>
+<td>01 Responsável; 02–03 Cônjuge; 04–06 Filho(a) ou enteado(a); 07–16 Outros parentes e não parentes</td>
+</tr>
+<tr class="odd">
+<td>Pessoa</td>
+<td><code>V2007</code></td>
+<td>Sexo</td>
+<td>1 Homem; 2 Mulher</td>
+</tr>
+<tr class="even">
+<td>Pessoa</td>
+<td><code>V2009</code></td>
+<td>Idade na data de referência</td>
+<td>0 a 130 anos</td>
+</tr>
+<tr class="odd">
+<td>Pessoa</td>
+<td><code>V2010</code></td>
+<td>Cor ou raça</td>
+<td>1 Branca; 2 Preta; 3 Amarela; 4 Parda; 5 Indígena; 9 Ignorado</td>
+</tr>
+<tr class="even">
+<td>Educação</td>
+<td><code>V3002</code></td>
+<td>Frequenta escola?</td>
+<td>1 Sim; 2 Não</td>
+</tr>
+<tr class="odd">
+<td>Educação</td>
+<td><code>VD3004</code></td>
+<td>Nível de instrução mais elevado alcançado (5 anos ou mais)</td>
+<td>1 Sem instrução; 2 Fundamental incompleto; 3 Fundamental completo; 4 Médio incompleto; 5 Médio completo; 6 Superior incompleto; 7 Superior completo</td>
+</tr>
+<tr class="even">
+<td>Educação</td>
+<td><code>VD3005</code></td>
+<td>Anos de estudo (5 anos ou mais)</td>
+<td>0 a 15; 16 = 16 anos ou mais</td>
+</tr>
+<tr class="odd">
+<td>Educação</td>
+<td><code>V3001</code></td>
+<td>Sabe ler e escrever?</td>
+<td>1 Sim; 2 Não</td>
+</tr>
+<tr class="even">
+<td>Educação</td>
+<td><code>V3003A</code></td>
+<td>Curso que frequenta</td>
+<td>02 Pré-escola; 03 Alfabetização de jovens e adultos; 04 Regular do fundamental; 05 EJA do fundamental; 06 Regular do médio; 07 EJA do médio; 08 Superior (graduação); 09 Especialização; 10 Mestrado; 11 Doutorado</td>
+</tr>
+<tr class="odd">
+<td>Educação</td>
+<td><code>V3006</code></td>
+<td>Ano, série ou semestre que frequenta</td>
+<td>01 a 12 (primeiro a décimo segundo); 13 Curso não classificado em séries ou anos</td>
+</tr>
+<tr class="even">
+<td>Trabalho</td>
+<td><code>VD4001</code></td>
+<td>Condição em relação à força de trabalho (14 anos ou mais)</td>
+<td>1 Na força de trabalho; 2 Fora da força de trabalho</td>
+</tr>
+<tr class="odd">
+<td>Trabalho</td>
+<td><code>VD4002</code></td>
+<td>Condição de ocupação (14 anos ou mais)</td>
+<td>1 Ocupada; 2 Desocupada</td>
+</tr>
+<tr class="even">
+<td>Trabalho</td>
+<td><code>VD4009</code></td>
+<td>Posição na ocupação e categoria do emprego no trabalho principal</td>
+<td>1–2 Setor privado com e sem carteira; 3–4 Doméstico com e sem carteira; 5–6 Setor público com e sem carteira; 7 Militar e estatutário; 8 Empregador; 9 Conta própria; 10 Familiar auxiliar</td>
+</tr>
+<tr class="odd">
+<td>Trabalho</td>
+<td><code>V4019</code></td>
+<td>O negócio era registrado no CNPJ?</td>
+<td>1 Sim; 2 Não</td>
+</tr>
+<tr class="even">
+<td>Trabalho</td>
+<td><code>VD4012</code></td>
+<td>Contribuição para a previdência em qualquer trabalho</td>
+<td>1 Contribuinte; 2 Não contribuinte</td>
+</tr>
+<tr class="odd">
+<td>Trabalho</td>
+<td><code>VD4010</code></td>
+<td>Grupamento de atividade do trabalho principal</td>
+<td>12 grupamentos (ex.: 9 Educação, saúde humana e serviços sociais; 11 Serviços domésticos)</td>
+</tr>
+<tr class="even">
+<td>Trabalho</td>
+<td><code>VD4011</code></td>
+<td>Grupamento ocupacional do trabalho principal</td>
+<td>11 grupamentos (ex.: 1 Diretores e gerentes; 2 Profissionais das ciências e intelectuais)</td>
+</tr>
+<tr class="odd">
+<td>Trabalho</td>
+<td><code>V4010</code></td>
+<td>Código da ocupação (cargo ou função) no trabalho principal, pela <a href="https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/Documentacao/Estrutura_Ocupacao_COD.xls">Classificação de Ocupações para Pesquisas Domiciliares (COD)</a></td>
+<td>4 dígitos; os 2 primeiros indicam o subgrupo (11 a 14 = diretores e gerentes)</td>
+</tr>
+<tr class="even">
+<td>Trabalho</td>
+<td><code>VD4019</code></td>
+<td>Rendimento mensal habitual de todos os trabalhos</td>
+<td>Valor em R$</td>
+</tr>
+<tr class="odd">
+<td>Trabalho</td>
+<td><code>VD4031</code></td>
+<td>Horas habitualmente trabalhadas por semana em todos os trabalhos</td>
+<td>1 a 120 horas</td>
+</tr>
+<tr class="even">
+<td>Trabalho</td>
+<td><code>V4022</code></td>
+<td>Onde exercia normalmente o trabalho principal</td>
+<td>1 Estabelecimento de outro negócio ou empresa; 2 Local designado pelo empregador ou cliente; 3 Domicílio do empregador ou cliente; 4 Próprio domicílio, em local exclusivo; 5 Próprio domicílio, sem local exclusivo; 6 Veículo; 7 Via ou área pública; 8 Outro</td>
+</tr>
+<tr class="odd">
+<td>Trabalho</td>
+<td><code>V4040</code></td>
+<td>Há quanto tempo estava no trabalho principal</td>
+<td>1 Menos de 1 mês; 2 De 1 mês a menos de 1 ano; 3 De 1 a menos de 2 anos; 4 2 anos ou mais</td>
+</tr>
+<tr class="even">
+<td>Trabalho</td>
+<td><code>V4076</code></td>
+<td>Há quanto tempo estava sem trabalho e procurando trabalho</td>
+<td>1 Menos de 1 mês; 2 De 1 mês a menos de 1 ano; 3 De 1 a menos de 2 anos; 4 2 anos ou mais</td>
+</tr>
+<tr class="odd">
+<td>Trabalho</td>
+<td><code>VD4003</code></td>
+<td>Força de trabalho potencial (14 anos ou mais, fora da força de trabalho)</td>
+<td>1 Na força de trabalho potencial; 2 Fora da força de trabalho potencial</td>
+</tr>
+<tr class="even">
+<td>Trabalho</td>
+<td><code>VD4004A</code></td>
+<td>Subocupação por insuficiência de horas habitualmente trabalhadas</td>
+<td>1 Subocupada; vazio para as demais pessoas</td>
+</tr>
+<tr class="odd">
+<td>Trabalho</td>
+<td><code>VD4005</code></td>
+<td>Pessoas desalentadas</td>
+<td>1 Desalentada; vazio para as demais pessoas</td>
+</tr>
+<tr class="even">
+<td>Trabalho</td>
+<td><code>VD4030</code></td>
+<td>Motivo de não ter procurado trabalho, não querer trabalhar ou não estar disponível</td>
+<td>1 Cuidar dos afazeres domésticos, dos filhos ou de outros parentes; 2 Estudando; 3 Saúde ou gravidez; 4 Muito jovem ou muito idoso; 5 Não queria trabalhar; 6 Outro motivo</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="indicadores-trabalhados" class="level2">
+<h2 class="anchored" data-anchor-id="indicadores-trabalhados">Indicadores trabalhados</h2>
+<p>Os indicadores calculados no <a href="./relatorio.html">relatório</a>, como na tabela “Das variáveis aos indicadores” do bloco 4. No relatório, passar o mouse sobre uma variável criada no curso mostra o código que a cria.</p>
+<p>Os códigos entre parênteses seguem a numeração usada pelo IBGE na publicação <em>Estatísticas de Gênero</em>. Na lista da ONU, a dimensão aparece em algarismos romanos: o indicador 1.3 daqui é o I.3 de lá, e o 4.3 é o IV.3.</p>
+<table class="caption-top table">
+<caption>Todos os indicadores podem ser desagregados por <code>cor_raca</code>, <code>faixa_etaria</code>, <code>regiao</code>, <code>territorio</code> e <code>situacao</code>, sempre cruzando com <code>sexo</code>.</caption>
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Indicador (CMIG)</th>
+<th>Tipo</th>
+<th>Numerador</th>
+<th>Denominador</th>
+<th>Variáveis</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Trabalho</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>Taxa de participação na força de trabalho, 15 anos ou mais (1.3)</td>
 <td>Taxa</td>
-<td>Núcleo</td>
+<td>Pessoas de <strong>15 anos ou mais</strong> na força de trabalho (ocupadas + desocupadas)</td>
+<td>Pessoas de <strong>15 anos ou mais</strong></td>
+<td><code>forca_trabalho</code>, <code>idade</code></td>
+</tr>
+<tr class="odd">
+<td>Taxa de participação na força de trabalho, 15 a 24 anos (1.3)</td>
+<td>Taxa</td>
+<td>Pessoas de <strong>15 a 24 anos</strong> na força de trabalho</td>
+<td>Pessoas de <strong>15 a 24 anos</strong></td>
+<td><code>forca_trabalho</code>, <code>idade</code></td>
+</tr>
+<tr class="even">
+<td>Nível de ocupação</td>
+<td>Taxa</td>
+<td>Pessoas ocupadas de 14 anos ou mais</td>
+<td>Pessoas de 14 anos ou mais</td>
+<td><code>ocupada</code>, <code>idade</code></td>
+</tr>
+<tr class="odd">
+<td>Nível de ocupação com e sem criança de até 6 anos (1.15)</td>
+<td>Taxa</td>
+<td>Pessoas ocupadas de 25 a 54 anos</td>
+<td>Pessoas de 25 a 54 anos, com e sem criança no domicílio</td>
+<td><code>ocupada</code>, <code>idade</code>, <code>crianca_ate_6</code></td>
 </tr>
 <tr class="even">
 <td>Taxa de desocupação (1.10)</td>
 <td>Taxa</td>
-<td>Núcleo</td>
+<td>Pessoas desocupadas de 14 anos ou mais</td>
+<td>Pessoas de 14 anos ou mais na força de trabalho</td>
+<td><code>desocupada</code>, <code>forca_trabalho</code></td>
 </tr>
 <tr class="odd">
-<td>Informalidade no trabalho não agrícola (1.9)</td>
+<td>Informalidade (1.9)</td>
 <td>Taxa</td>
-<td>Núcleo</td>
-</tr>
-<tr class="even">
-<td>Rendimento médio e razão entre mulheres e homens por grupo ocupacional (1.13)</td>
-<td>Média e razão</td>
-<td>Núcleo</td>
-</tr>
-<tr class="odd">
-<td>Nível de instrução da população de 25 anos ou mais (2.11)</td>
-<td>Distribuição</td>
-<td>Núcleo</td>
-</tr>
-<tr class="even">
-<td>Horas habitualmente trabalhadas por semana</td>
-<td>Média</td>
-<td>Núcleo</td>
-</tr>
-<tr class="odd">
-<td>Nível de ocupação de 25 a 54 anos, com e sem criança de até 6 anos (1.15)</td>
-<td>Taxa</td>
-<td>Exercício</td>
+<td>Ocupados informais em atividades não agrícolas</td>
+<td>Ocupados em atividades não agrícolas</td>
+<td><code>informal</code>, <code>atividade_agricola</code>, <code>ocupada</code></td>
 </tr>
 <tr class="even">
 <td>Ocupação em tempo parcial (1.14)</td>
 <td>Taxa</td>
-<td>Exercício</td>
+<td>Ocupados com até 30 horas habituais por semana</td>
+<td>Pessoas ocupadas</td>
+<td><code>VD4031</code>, <code>ocupada</code></td>
 </tr>
 <tr class="odd">
-<td>Mulheres em cargos gerenciais (4.3)</td>
+<td>Posição na ocupação: conta própria (1.4), trabalhador familiar auxiliar (1.5) e empregador (1.6)</td>
 <td>Taxa</td>
-<td>Exercício</td>
+<td>Ocupados em cada posição</td>
+<td>Pessoas ocupadas</td>
+<td><code>VD4009</code> (9, 10 e 8), <code>ocupada</code></td>
 </tr>
 <tr class="even">
-<td>Jovens de 15 a 24 anos que não estudam nem estão ocupados (1.7)</td>
-<td>Taxa</td>
-<td>Exercício</td>
+<td>Ocupados por setor de atividade (1.8)</td>
+<td>Distribuição</td>
+<td>Ocupados em cada setor</td>
+<td>Ocupados com setor definido</td>
+<td><code>setor</code>, <code>ocupada</code></td>
 </tr>
 <tr class="odd">
-<td>Frequência escolar de 15 a 17 anos (2.3)</td>
+<td>Mulheres na gerência sênior e intermediária (4.3)</td>
 <td>Taxa</td>
-<td>Exercício</td>
+<td>Mulheres na gerência sênior e intermediária</td>
+<td>Todas as pessoas na gerência sênior e intermediária</td>
+<td><code>cargo_gerencial</code>, <code>mulher</code></td>
+</tr>
+<tr class="even">
+<td>Mulheres em todos os cargos gerenciais (4.3)</td>
+<td>Taxa</td>
+<td>Mulheres em cargos gerenciais, incluída a gerência júnior</td>
+<td>Todas as pessoas em cargos gerenciais</td>
+<td><code>cargo_gerencial_total</code>, <code>mulher</code></td>
+</tr>
+<tr class="odd">
+<td>Mulheres entre os trabalhadores domésticos</td>
+<td>Taxa</td>
+<td>Mulheres no trabalho doméstico remunerado</td>
+<td>Todas as pessoas no trabalho doméstico remunerado</td>
+<td><code>VD4009</code> (3 e 4), <code>ocupada</code>, <code>mulher</code></td>
+</tr>
+<tr class="even">
+<td><strong>Rendimento</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>Rendimento médio habitual de todos os trabalhos</td>
+<td>Média</td>
+<td>Soma dos rendimentos</td>
+<td>Ocupados com rendimento</td>
+<td><code>VD4019</code>, <code>ocupada</code></td>
+</tr>
+<tr class="even">
+<td>Razão de rendimento mulheres/homens (1.13)</td>
+<td>Razão</td>
+<td>Rendimento médio das mulheres</td>
+<td>Rendimento médio dos homens</td>
+<td><code>VD4019</code>, <code>ocupada</code>, <code>mulher</code>, <code>VD4011</code> (por grupo ocupacional)</td>
+</tr>
+<tr class="odd">
+<td><strong>Educação</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>Nível de instrução da população de 25 anos ou mais (2.11)</td>
+<td>Distribuição</td>
+<td>Pessoas em cada grupo de escolaridade</td>
+<td>Pessoas de 25 anos ou mais</td>
+<td><code>VD3004</code> (bloco 5), <code>escolaridade</code> (bloco 7), <code>idade</code></td>
+</tr>
+<tr class="odd">
+<td>Taxa de frequência escolar líquida nos anos finais do ensino fundamental</td>
+<td>Taxa</td>
+<td>Pessoas de 11 a 14 anos matriculadas do 6º ao 9º ano do fundamental, no ensino regular ou na EJA</td>
+<td>Pessoas de 11 a 14 anos</td>
+<td><code>V3003A</code> (4 e 5), <code>V3006</code> (6 a 9), <code>idade</code></td>
+</tr>
+<tr class="even">
+<td>Taxa de frequência escolar líquida no ensino médio</td>
+<td>Taxa</td>
+<td>Pessoas de 15 a 17 anos matriculadas no ensino médio, regular ou EJA</td>
+<td>Pessoas de 15 a 17 anos</td>
+<td><code>V3003A</code> (6 e 7), <code>idade</code></td>
+</tr>
+<tr class="odd">
+<td>Taxa de frequência escolar líquida no ensino superior</td>
+<td>Taxa</td>
+<td>Pessoas de 18 a 24 anos matriculadas na graduação ou na pós-graduação</td>
+<td>Pessoas de 18 a 24 anos</td>
+<td><code>V3003A</code> (8 a 11), <code>idade</code></td>
+</tr>
+<tr class="even">
+<td>Taxa de conclusão dos anos iniciais do ensino fundamental (2.5)</td>
+<td>Taxa</td>
+<td>Pessoas de 13 a 15 anos com os anos iniciais concluídos (5 anos de estudo ou mais)</td>
+<td>Pessoas de 13 a 15 anos</td>
+<td><code>VD3005</code>, <code>idade</code></td>
+</tr>
+<tr class="odd">
+<td>Taxa de conclusão do ensino fundamental (2.6)</td>
+<td>Taxa</td>
+<td>Pessoas de 17 a 19 anos com fundamental completo ou mais</td>
+<td>Pessoas de 17 a 19 anos</td>
+<td><code>VD3004</code> (3 ou mais), <code>idade</code></td>
+</tr>
+<tr class="even">
+<td>Taxa de conclusão do ensino médio</td>
+<td>Taxa</td>
+<td>Pessoas de 20 a 22 anos com médio completo ou mais</td>
+<td>Pessoas de 20 a 22 anos</td>
+<td><code>VD3004</code> (5 ou mais), <code>idade</code></td>
+</tr>
+<tr class="odd">
+<td>Jovens que não estudam nem estão ocupados (1.7)</td>
+<td>Taxa</td>
+<td>Pessoas de 15 a 24 anos não ocupadas e que não frequentam escola</td>
+<td>Pessoas de 15 a 24 anos</td>
+<td><code>estuda</code>, <code>ocupada</code>, <code>idade</code></td>
 </tr>
 </tbody>
 </table>
-<p>A lista completa, com numerador e denominador de cada indicador, está na seção “Das variáveis aos indicadores” do <a href="./relatorio.html">relatório</a>.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>Cuidados na leitura da tabela
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><strong>Pessoas ocupadas:</strong> nos indicadores calculados entre os ocupados (informalidade, tempo parcial, posição na ocupação, setor, cargos gerenciais e rendimento), a população são os ocupados de 14 anos ou mais, o padrão do IBGE.</li>
+<li><strong>Frequência escolar líquida (anos finais do fundamental, ensino médio e ensino superior):</strong> é uma aproximação dos indicadores 2.3 e 2.4 do CMIG. Pela definição da ONU, esses indicadores são <strong>taxas brutas de matrícula</strong>: no numerador entram os matriculados na etapa de qualquer idade, e no denominador, a população na idade prevista para ela. Com o atraso escolar no Brasil, muitos alunos estão com idade prevista acima da esperada para determinado ano letivo, e a taxa bruta passa de 100%, o que dificulta a leitura. Por isso, decidiu-se calcular a frequência líquida: conta só quem está na idade prevista para a etapa <strong>e</strong> frequenta essa etapa, no ensino regular ou na EJA (no superior, a graduação e a pós-graduação). Na EJA do fundamental, só entra quem está do 6º ao 9º ano; quem estuda em cursos organizados de outra forma (por semestre, por exemplo) pode ficar de fora.</li>
+<li><strong>Conclusão dos anos iniciais do fundamental (2.5):</strong> a PNAD Contínua não pergunta diretamente se a pessoa concluiu os anos iniciais. O indicador usa os anos de estudo (<code>VD3005</code>), que o IBGE já padroniza para o ensino fundamental de 9 anos: quem tem 5 anos de estudo ou mais concluiu o 5º ano, o último dos anos iniciais.</li>
+<li><strong>Jovens que não estudam nem estão ocupados:</strong> a publicação <em>Estatísticas de Gênero</em> do IBGE também exclui quem estava em curso de qualificação profissional, informação que não está na base do curso. Por isso, o indicador calculado aqui inclui mais pessoas e tende a ficar acima do publicado.</li>
+</ul>
+</div>
+</div>
 
 
 </section>
