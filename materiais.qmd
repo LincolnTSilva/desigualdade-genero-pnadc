@@ -15,32 +15,105 @@ title: "Materiais"
 
 [<i class="bi bi-download"></i> Baixar o relatório (.qmd)](downloads/relatorio.qmd){.btn .btn-primary}
 
-Depois de baixar, abra o arquivo no RStudio e clique em **Render**. Os dados são lidos do Zenodo, pelos links indicados nos parâmetros do cabeçalho.
+Depois de baixar, é possível gerar o relatório com os parâmetros pré-definidos abrindo o arquivo no RStudio e clicar em **Render**. Os dados são lidos do Zenodo pelos links indicados nos parâmetros do cabeçalho, localmente ou usando o pacote `PNADcIBGE`.
 
 ## Ficha de indicador
 
-Modelo para a atividade do bloco 9, disponível no [material do Dia 2](dia2.qmd#atividade-um-indicador-novo). O bloco 9 do [relatório](relatorio.qmd) traz a ficha preenchida com um exemplo e o código completo, para servir de ponto de partida.
+Modelo para a atividade do bloco 9, disponível no [material do Dia 2](dia2.qmd#seu-indicador). O bloco 9 do [relatório](relatorio.qmd) traz a ficha preenchida com um exemplo e o código completo, para servir de ponto de partida.
 
 ## Dicionário resumido
 
-As variáveis da PNAD Contínua usadas no curso, com nome, descrição e categorias.
+As variáveis da PNAD Contínua usadas no curso, com nome, descrição e categorias, como no bloco 3 do [relatório](relatorio.qmd). O dicionário completo está na [página de documentação dos microdados trimestrais](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/Documentacao/) do IBGE.
 
-*Em preparação.*
+| Grupo | Variável | Descrição | Categorias ou valores |
+|---|---|---|---|
+| Chave | `Ano` | Ano de referência | |
+| Chave | `Trimestre` | Trimestre de referência | 1 a 4 |
+| Chave | `UPA` | Unidade Primária de Amostragem | UF (2 dígitos) + número sequencial (6) + dígito verificador (1) |
+| Chave | `V1008` | Número de seleção do domicílio | 01 a 14 |
+| Chave | `V1014` | Painel (grupo de amostra) | 01 a 99 |
+| Chave | `V2003` | Número de ordem da pessoa no domicílio | 01 a 30 |
+| Localização | `UF` | Unidade da Federação | Código IBGE da UF (33 = Rio de Janeiro) |
+| Localização | `V1022` | Situação do domicílio | 1 Urbana; 2 Rural |
+| Localização | `V1023` | Tipo de área. Junto com a `UF`, identifica a capital e a região metropolitana de cada UF | 1 Capital; 2 Resto da RM; 3 Resto da RIDE; 4 Resto da UF |
+| Desenho | `Estrato` | Estrato de seleção da amostra | As 2 primeiras posições são o código da UF |
+| Desenho | `ID_DOMICILIO` | Identificação do domicílio, a unidade do 2º estágio da amostra. Criada pelo `PNADcIBGE` na leitura | `UPA` + `V1008` + `V1014` |
+| Desenho | `V1027` | Peso do trimestre **sem** calibração pela projeção de população | Com correção de não entrevista |
+| Desenho | `V1028` | Peso do trimestre **com** calibração pela projeção de população | Com correção de não entrevista |
+| Desenho | `posest` | Domínios de projeção geográficos | UF (2) + tipo de área `V1023` (1) |
+| Desenho | `V1029` | Projeção da população por domínio geográfico | Total populacional de cada `posest` |
+| Desenho | `posest_sxi` | Domínios de projeção por sexo e idade | Sexo (1) + grupo de idade (2) |
+| Desenho | `V1033` | Projeção da população por sexo e idade | Total populacional de cada `posest_sxi` |
+| Pessoa | `V2005` | Condição no domicílio | 01 Responsável; 02–03 Cônjuge; 04–06 Filho(a) ou enteado(a); 07–16 Outros parentes e não parentes |
+| Pessoa | `V2007` | Sexo | 1 Homem; 2 Mulher |
+| Pessoa | `V2009` | Idade na data de referência | 0 a 130 anos |
+| Pessoa | `V2010` | Cor ou raça | 1 Branca; 2 Preta; 3 Amarela; 4 Parda; 5 Indígena; 9 Ignorado |
+| Educação | `V3002` | Frequenta escola? | 1 Sim; 2 Não |
+| Educação | `VD3004` | Nível de instrução mais elevado alcançado (5 anos ou mais) | 1 Sem instrução; 2 Fundamental incompleto; 3 Fundamental completo; 4 Médio incompleto; 5 Médio completo; 6 Superior incompleto; 7 Superior completo |
+| Educação | `VD3005` | Anos de estudo (5 anos ou mais) | 0 a 15; 16 = 16 anos ou mais |
+| Educação | `V3001` | Sabe ler e escrever? | 1 Sim; 2 Não |
+| Educação | `V3003A` | Curso que frequenta | 02 Pré-escola; 03 Alfabetização de jovens e adultos; 04 Regular do fundamental; 05 EJA do fundamental; 06 Regular do médio; 07 EJA do médio; 08 Superior (graduação); 09 Especialização; 10 Mestrado; 11 Doutorado |
+| Educação | `V3006` | Ano, série ou semestre que frequenta | 01 a 12 (primeiro a décimo segundo); 13 Curso não classificado em séries ou anos |
+| Trabalho | `VD4001` | Condição em relação à força de trabalho (14 anos ou mais) | 1 Na força de trabalho; 2 Fora da força de trabalho |
+| Trabalho | `VD4002` | Condição de ocupação (14 anos ou mais) | 1 Ocupada; 2 Desocupada |
+| Trabalho | `VD4009` | Posição na ocupação e categoria do emprego no trabalho principal | 1–2 Setor privado com e sem carteira; 3–4 Doméstico com e sem carteira; 5–6 Setor público com e sem carteira; 7 Militar e estatutário; 8 Empregador; 9 Conta própria; 10 Familiar auxiliar |
+| Trabalho | `V4019` | O negócio era registrado no CNPJ? | 1 Sim; 2 Não |
+| Trabalho | `VD4012` | Contribuição para a previdência em qualquer trabalho | 1 Contribuinte; 2 Não contribuinte |
+| Trabalho | `VD4010` | Grupamento de atividade do trabalho principal | 12 grupamentos (ex.: 9 Educação, saúde humana e serviços sociais; 11 Serviços domésticos) |
+| Trabalho | `VD4011` | Grupamento ocupacional do trabalho principal | 11 grupamentos (ex.: 1 Diretores e gerentes; 2 Profissionais das ciências e intelectuais) |
+| Trabalho | `V4010` | Código da ocupação (cargo ou função) no trabalho principal, pela [Classificação de Ocupações para Pesquisas Domiciliares (COD)](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/Documentacao/Estrutura_Ocupacao_COD.xls) | 4 dígitos; os 2 primeiros indicam o subgrupo (11 a 14 = diretores e gerentes) |
+| Trabalho | `VD4019` | Rendimento mensal habitual de todos os trabalhos | Valor em R$ |
+| Trabalho | `VD4031` | Horas habitualmente trabalhadas por semana em todos os trabalhos | 1 a 120 horas |
+| Trabalho | `V4022` | Onde exercia normalmente o trabalho principal | 1 Estabelecimento de outro negócio ou empresa; 2 Local designado pelo empregador ou cliente; 3 Domicílio do empregador ou cliente; 4 Próprio domicílio, em local exclusivo; 5 Próprio domicílio, sem local exclusivo; 6 Veículo; 7 Via ou área pública; 8 Outro |
+| Trabalho | `V4040` | Há quanto tempo estava no trabalho principal | 1 Menos de 1 mês; 2 De 1 mês a menos de 1 ano; 3 De 1 a menos de 2 anos; 4 2 anos ou mais |
+| Trabalho | `V4076` | Há quanto tempo estava sem trabalho e procurando trabalho | 1 Menos de 1 mês; 2 De 1 mês a menos de 1 ano; 3 De 1 a menos de 2 anos; 4 2 anos ou mais |
+| Trabalho | `VD4003` | Força de trabalho potencial (14 anos ou mais, fora da força de trabalho) | 1 Na força de trabalho potencial; 2 Fora da força de trabalho potencial |
+| Trabalho | `VD4004A` | Subocupação por insuficiência de horas habitualmente trabalhadas | 1 Subocupada; vazio para as demais pessoas |
+| Trabalho | `VD4005` | Pessoas desalentadas | 1 Desalentada; vazio para as demais pessoas |
+| Trabalho | `VD4030` | Motivo de não ter procurado trabalho, não querer trabalhar ou não estar disponível | 1 Cuidar dos afazeres domésticos, dos filhos ou de outros parentes; 2 Estudando; 3 Saúde ou gravidez; 4 Muito jovem ou muito idoso; 5 Não queria trabalhar; 6 Outro motivo |
+
+: Fonte: IBGE, dicionário dos microdados trimestrais da PNAD Contínua. Nas variáveis com "Não aplicável", o valor fica vazio (`NA`) para as pessoas fora do público da pergunta, por exemplo menores de 14 anos nas variáveis de trabalho.
 
 ## Indicadores trabalhados
 
-| Indicador (código CMIG) | Tipo | Papel no curso |
-|---|---|---|
-| Taxa de participação na força de trabalho (1.3) | Taxa | Núcleo |
-| Taxa de desocupação (1.10) | Taxa | Núcleo |
-| Informalidade no trabalho não agrícola (1.9) | Taxa | Núcleo |
-| Rendimento médio e razão entre mulheres e homens por grupo ocupacional (1.13) | Média e razão | Núcleo |
-| Nível de instrução da população de 25 anos ou mais (2.11) | Distribuição | Núcleo |
-| Horas habitualmente trabalhadas por semana | Média | Núcleo |
-| Nível de ocupação de 25 a 54 anos, com e sem criança de até 6 anos (1.15) | Taxa | Exercício |
-| Ocupação em tempo parcial (1.14) | Taxa | Exercício |
-| Mulheres em cargos gerenciais (4.3) | Taxa | Exercício |
-| Jovens de 15 a 24 anos que não estudam nem estão ocupados (1.7) | Taxa | Exercício |
-| Frequência escolar de 15 a 17 anos (2.3) | Taxa | Exercício |
+Os indicadores calculados no [relatório](relatorio.qmd), como na tabela "Das variáveis aos indicadores" do bloco 4. No relatório, passar o mouse sobre uma variável criada no curso mostra o código que a cria.
 
-A lista completa, com numerador e denominador de cada indicador, está na seção "Das variáveis aos indicadores" do [relatório](relatorio.qmd).
+Os códigos entre parênteses seguem a numeração usada pelo IBGE na publicação *Estatísticas de Gênero*. Na lista da ONU, a dimensão aparece em algarismos romanos: o indicador 1.3 daqui é o I.3 de lá, e o 4.3 é o IV.3.
+
+| Indicador (CMIG) | Tipo | Numerador | Denominador | Variáveis |
+|---|---|---|---|---|
+| **Trabalho** | | | | |
+| Taxa de participação na força de trabalho, 15 anos ou mais (1.3) | Taxa | Pessoas de **15 anos ou mais** na força de trabalho (ocupadas + desocupadas) | Pessoas de **15 anos ou mais** | `forca_trabalho`, `idade` |
+| Taxa de participação na força de trabalho, 15 a 24 anos (1.3) | Taxa | Pessoas de **15 a 24 anos** na força de trabalho | Pessoas de **15 a 24 anos** | `forca_trabalho`, `idade` |
+| Nível de ocupação | Taxa | Pessoas ocupadas de 14 anos ou mais | Pessoas de 14 anos ou mais | `ocupada`, `idade` |
+| Nível de ocupação com e sem criança de até 6 anos (1.15) | Taxa | Pessoas ocupadas de 25 a 54 anos | Pessoas de 25 a 54 anos, com e sem criança no domicílio | `ocupada`, `idade`, `crianca_ate_6` |
+| Taxa de desocupação (1.10) | Taxa | Pessoas desocupadas de 14 anos ou mais | Pessoas de 14 anos ou mais na força de trabalho | `desocupada`, `forca_trabalho` |
+| Informalidade (1.9) | Taxa | Ocupados informais em atividades não agrícolas | Ocupados em atividades não agrícolas | `informal`, `atividade_agricola`, `ocupada` |
+| Ocupação em tempo parcial (1.14) | Taxa | Ocupados com até 30 horas habituais por semana | Pessoas ocupadas | `VD4031`, `ocupada` |
+| Posição na ocupação: conta própria (1.4), trabalhador familiar auxiliar (1.5) e empregador (1.6) | Taxa | Ocupados em cada posição | Pessoas ocupadas | `VD4009` (9, 10 e 8), `ocupada` |
+| Ocupados por setor de atividade (1.8) | Distribuição | Ocupados em cada setor | Ocupados com setor definido | `setor`, `ocupada` |
+| Mulheres na gerência sênior e intermediária (4.3) | Taxa | Mulheres na gerência sênior e intermediária | Todas as pessoas na gerência sênior e intermediária | `cargo_gerencial`, `mulher` |
+| Mulheres em todos os cargos gerenciais (4.3) | Taxa | Mulheres em cargos gerenciais, incluída a gerência júnior | Todas as pessoas em cargos gerenciais | `cargo_gerencial_total`, `mulher` |
+| Mulheres entre os trabalhadores domésticos | Taxa | Mulheres no trabalho doméstico remunerado | Todas as pessoas no trabalho doméstico remunerado | `VD4009` (3 e 4), `ocupada`, `mulher` |
+| **Rendimento** | | | | |
+| Rendimento médio habitual de todos os trabalhos | Média | Soma dos rendimentos | Ocupados com rendimento | `VD4019`, `ocupada` |
+| Razão de rendimento mulheres/homens (1.13) | Razão | Rendimento médio das mulheres | Rendimento médio dos homens | `VD4019`, `ocupada`, `mulher`, `VD4011` (por grupo ocupacional) |
+| **Educação** | | | | |
+| Nível de instrução da população de 25 anos ou mais (2.11) | Distribuição | Pessoas em cada grupo de escolaridade | Pessoas de 25 anos ou mais | `VD3004` (bloco 5), `escolaridade` (bloco 7), `idade` |
+| Taxa de frequência escolar líquida nos anos finais do ensino fundamental | Taxa | Pessoas de 11 a 14 anos matriculadas do 6º ao 9º ano do fundamental, no ensino regular ou na EJA | Pessoas de 11 a 14 anos | `V3003A` (4 e 5), `V3006` (6 a 9), `idade` |
+| Taxa de frequência escolar líquida no ensino médio | Taxa | Pessoas de 15 a 17 anos matriculadas no ensino médio, regular ou EJA | Pessoas de 15 a 17 anos | `V3003A` (6 e 7), `idade` |
+| Taxa de frequência escolar líquida no ensino superior | Taxa | Pessoas de 18 a 24 anos matriculadas na graduação ou na pós-graduação | Pessoas de 18 a 24 anos | `V3003A` (8 a 11), `idade` |
+| Taxa de conclusão dos anos iniciais do ensino fundamental (2.5) | Taxa | Pessoas de 13 a 15 anos com os anos iniciais concluídos (5 anos de estudo ou mais) | Pessoas de 13 a 15 anos | `VD3005`, `idade` |
+| Taxa de conclusão do ensino fundamental (2.6) | Taxa | Pessoas de 17 a 19 anos com fundamental completo ou mais | Pessoas de 17 a 19 anos | `VD3004` (3 ou mais), `idade` |
+| Taxa de conclusão do ensino médio | Taxa | Pessoas de 20 a 22 anos com médio completo ou mais | Pessoas de 20 a 22 anos | `VD3004` (5 ou mais), `idade` |
+| Jovens que não estudam nem estão ocupados (1.7) | Taxa | Pessoas de 15 a 24 anos não ocupadas e que não frequentam escola | Pessoas de 15 a 24 anos | `estuda`, `ocupada`, `idade` |
+
+: Todos os indicadores podem ser desagregados por `cor_raca`, `faixa_etaria`, `regiao`, `territorio` e `situacao`, sempre cruzando com `sexo`.
+
+::: {.callout-note}
+## Cuidados na leitura da tabela
+- **Pessoas ocupadas:** nos indicadores calculados entre os ocupados (informalidade, tempo parcial, posição na ocupação, setor, cargos gerenciais e rendimento), a população são os ocupados de 14 anos ou mais, o padrão do IBGE.
+- **Frequência escolar líquida (anos finais do fundamental, ensino médio e ensino superior):** é uma aproximação dos indicadores 2.3 e 2.4 do CMIG. Pela definição da ONU, esses indicadores são **taxas brutas de matrícula**: no numerador entram os matriculados na etapa de qualquer idade, e no denominador, a população na idade prevista para ela. Com o atraso escolar no Brasil, muitos alunos estão com idade prevista acima da esperada para determinado ano letivo, e a taxa bruta passa de 100%, o que dificulta a leitura. Por isso, decidiu-se calcular a frequência líquida: conta só quem está na idade prevista para a etapa **e** frequenta essa etapa, no ensino regular ou na EJA (no superior, a graduação e a pós-graduação). Na EJA do fundamental, só entra quem está do 6º ao 9º ano; quem estuda em cursos organizados de outra forma (por semestre, por exemplo) pode ficar de fora.
+- **Conclusão dos anos iniciais do fundamental (2.5):** a PNAD Contínua não pergunta diretamente se a pessoa concluiu os anos iniciais. O indicador usa os anos de estudo (`VD3005`), que o IBGE já padroniza para o ensino fundamental de 9 anos: quem tem 5 anos de estudo ou mais concluiu o 5º ano, o último dos anos iniciais.
+- **Jovens que não estudam nem estão ocupados:** a publicação *Estatísticas de Gênero* do IBGE também exclui quem estava em curso de qualificação profissional, informação que não está na base do curso. Por isso, o indicador calculado aqui inclui mais pessoas e tende a ficar acima do publicado.
+:::

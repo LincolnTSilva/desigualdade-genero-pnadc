@@ -2,8 +2,18 @@
 title: "Dia 2: dos dados às conclusões"
 subtitle: "3 horas · da incerteza das estimativas ao relatório atualizado"
 code-tools: true
+params:
+  ano: 2026
+  trimestre: 2
+  ufs: ["RJ"]
+  gerar_base: false
+  url_base: ""
+  url_desenho: ""
 ---
 
+<!-- Página gerada por _sincroniza-dias.py: o texto e o código fora dos marcadores "dia" vêm do relatorio.qmd. Edite no relatório e rode o script de novo. -->
+
+<!-- dia: inicio -->
 O segundo dia acrescenta a incerteza às estimativas, reproduz o relatório e termina com o relatório gerado para outro trimestre ou outra UF.
 
 ## Programa
@@ -24,74 +34,1050 @@ O segundo dia acrescenta a incerteza às estimativas, reproduz o relatório e te
 
 ## Ponto de partida
 
-```{r}
-#| label: leitura-dia1
-#| eval: false
+O Dia 2 continua de onde o Dia 1 parou. O bloco abaixo roda, sem mostrar a saída, o código das seções 1 a 5 do [relatório](relatorio.qmd): parâmetros, pacotes, leitura da base, recodificação e estimativas com o `dplyr`.
 
-# Código a desenvolver: leitura da base recodificada ao final do Dia 1
+```{r}
+#| label: ponto-de-partida
+
+# Linhas do relatório da seção 1 até o fim da seção 5
+linhas <- readLines('relatorio.qmd', encoding = 'UTF-8')
+inicio <- grep('^## 1\\. ', linhas)[1]
+fim <- grep('^## 6\\. ', linhas)[1] - 1
+
+# Executa esse trecho como parte desta página, descartando o texto gerado
+invisible(knitr::knit_child(text = linhas[inicio:fim], quiet = TRUE))
+```
+<!-- /dia -->
+
+## 6. O desenho amostral
+
+O bloco 5 calculou as estimativas pontuais com o `dplyr`. Este bloco responde à pergunta que ficou em aberto: **o quanto confiar em cada número?** Para isso, é preciso dizer ao R como a amostra da PNAD Contínua foi sorteada.
+
+### Por que o desenho importa
+
+A PNAD Contínua não sorteia pessoas uma a uma. A amostra é selecionada em etapas:
+
+- **Estratos:** o país é dividido em estratos geográficos, e cada estrato tem a sua própria amostra.
+- **Unidades primárias de amostragem (UPA):** dentro de cada estrato, são sorteados setores censitários.
+- **Domicílios:** dentro de cada UPA, são sorteados domicílios, e todos os moradores são entrevistados.
+
+Pessoas da mesma UPA e do mesmo domicílio tendem a ser parecidas entre si: moram perto, têm renda próxima, dividem as tarefas da casa. Por isso, cada pessoa entrevistada traz menos informação nova do que traria numa amostra sorteada pessoa a pessoa. Ignorar essa estrutura faz o erro-padrão parecer **menor do que é**, e a estimativa parecer mais precisa do que é.
+
+O pacote `srvyr` guarda essa estrutura num objeto de **desenho amostral**, e calcula as estimativas e as medidas de precisão levando-a em conta.
+
+### O desenho com a calibração refeita
+
+O desenho deste relatório parte do peso sem calibração (`V1027`), declara os dois estágios de seleção (`UPA` e `ID_DOMICILIO`) e os estratos (`Estrato`), e **refaz a calibração** pelas projeções de população: por domínio geográfico (`posest`, com os totais de `V1029`) e por sexo e idade (`posest_sxi`, com os totais de `V1033`). É o que faz a função `pnadc_design()`, do pacote `PNADcIBGE`. A calibração faz os totais estimados baterem com as projeções e reduz a variância das estimativas.
+
+Criar esse desenho leva alguns minutos, porque a calibração é refeita para as `r format(nrow(pnadc), big.mark = '.', decimal.mark = ',')` pessoas da amostra. Por isso, ele é criado uma única vez, gravado num arquivo `.rds` e publicado no Zenodo junto com a base. Em sala, o desenho é só lido.
+
+::: {.callout-tip}
+## Um atalho: o desenho direto do `get_pnadc()`
+O pacote `PNADcIBGE` consegue ir dos microdados ao desenho num passo só. O argumento `design` do `get_pnadc()` vale `TRUE` por padrão: a função baixa os dados e já devolve o desenho amostral pronto. No bloco 3, este relatório usou `design = FALSE` de propósito.
+
+```{mermaid}
+%%| fig-cap: "Dois caminhos dos microdados até o desenho amostral."
+
+%%{init: {"flowchart": {"rankSpacing": 35, "nodeSpacing": 25}}}%%
+flowchart LR
+  A["get_pnadc()<br>design = FALSE"] --> B["Data frame<br>+ variáveis do bloco 4"]
+  B --> D["pnadc_design()"]
+  D --> F["Desenho amostral<br>EP, IC e CV"]
+  E["get_pnadc()<br>design = TRUE (padrão)"] --> F
+
+  classDef curso fill:#ece9f5,stroke:#5b4a9b,color:#2e2550
+  classDef atalho fill:#fdeee4,stroke:#e8793a,color:#6b3412
+  class A,B,D curso
+  class E atalho
 ```
 
-## 6. O desenho amostral com srvyr
+O relatório segue o caminho mais longo por dois motivos:
 
-*Texto a desenvolver:* por que o peso acerta o ponto e o desenho mostra a incerteza.
+- o bloco 5 calcula as estimativas com o `dplyr`, que trabalha com um data frame, não com um desenho;
+- em sala, a base e o desenho são só lidos, sem baixar os microdados.
+
+No atalho, o desenho também sai de outro jeito. O `get_pnadc()` sempre traz os 200 pesos replicados e, com eles na base, o desenho usa o *bootstrap*, como o IBGE, e não a linearização deste relatório (veja a caixa "Um erro-padrão um pouco diferente do divulgado pelo IBGE", mais abaixo). As estimativas são as mesmas, os erros-padrão podem ficar um pouco diferentes, e cada estimativa leva mais tempo. As variáveis novas também podem ser criadas com `mutate()` direto no desenho quando usamos o pacote `srvyr` com a função `as_survey()`:
+
+```r
+desenho_direto <- get_pnadc(
+  year    = ano,
+  quarter = trimestre,
+  vars    = vars_curso,
+  labels  = FALSE    # design = TRUE é o padrão
+) |>
+  as_survey() |>
+  mutate(mulher = if_else(V2007 == 2, 1, 0))
+```
+:::
+
+```{r}
+#| label: gerar-desenho
+#| eval: !expr params$gerar_base
+
+# Executado só com gerar_base: true, depois das variáveis do bloco 4.
+# O if protege quem roda o bloco pelo play do RStudio, que ignora o eval.
+if (params$gerar_base) {
+
+  # O pnadc_design() escolhe o método pelas colunas da base: com os pesos
+  # replicados (V1028001 a V1028200), usa bootstrap; sem eles, refaz a
+  # calibração e usa linearização, que é o que queremos aqui
+  if (any(str_detect(names(pnadc), '^V1028[0-9]{3}$'))) {
+    stop('A base tem pesos replicados: o pnadc_design() usaria bootstrap. ',
+         'Gere o desenho a partir da base sem as réplicas.', call. = FALSE)
+  }
+
+  desenho_calibrado <- pnadc |>
+    mutate(
+      ocupada = if_else(condicao_atividade %in% 'Ocupada', 1, 0),
+      desocupada = if_else(condicao_atividade %in% 'Desocupada', 1, 0),
+      forca_trabalho = ocupada + desocupada,
+      idade_15_mais = if_else(V2009 >= 15, 1, 0)
+    ) |>
+    PNADcIBGE::pnadc_design()
+
+  saveRDS(desenho_calibrado, arquivo_desenho)
+}
+```
+
+::: {.callout-warning}
+## O desenho guarda as variáveis do bloco 4
+O arquivo do desenho é gravado depois do bloco 4 e leva junto as variáveis derivadas (sexo, cor ou raça, condição de atividade, informalidade e as demais) e as dummies acima. Se o código do bloco 4 mudar, o desenho precisa ser gerado de novo, com `gerar_base: true`.
+:::
 
 ```{r}
 #| label: desenho
-#| eval: false
 
-library(srvyr)
-# Código a desenvolver: leitura do desenho amostral calibrado (.rds)
+# Opções que o pnadc_design() liga ao criar o desenho. Elas valem só para
+# a sessão do R e não vão junto no .rds: por isso, são ligadas de novo aqui.
+# Estrato com uma só UPA (no total ou num recorte): a variância é calculada
+# em torno da média geral, em vez de dar erro
+options(survey.lonely.psu = 'adjust')
+options(survey.adjust.domain.lonely = TRUE)
+
+# Arquivo local, se existir; senão, o link do Zenodo
+desenho <- localiza_arquivo(arquivo_desenho, params$url_desenho) |>
+  readRDS() |>
+  as_survey() # converte o objeto do pacote survey para usar com o srvyr
+
+desenho
+```
+
+::: {.callout-note}
+## Um erro-padrão um pouco diferente do divulgado pelo IBGE
+O IBGE calcula a precisão das suas estimativas com **200 pesos replicados**, obtidos por *bootstrap*. Este relatório refaz a calibração e calcula a variância por **linearização**. Os dois métodos estimam a mesma variância por caminhos diferentes, e por isso os erros-padrão, os intervalos de confiança e os coeficientes de variação daqui podem ficar um pouco diferentes dos divulgados. **Essa diferença não é um erro.** As estimativas pontuais são idênticas.
+:::
+
+### A mesma taxa, agora com a precisão
+
+A taxa de participação na força de trabalho do bloco 5, calculada agora no desenho. O `survey_mean()` de uma dummy é a sua média ponderada, ou seja, a taxa. Junto com ela, o `srvyr` devolve:
+
+- o **erro-padrão (EP)**: o tamanho típico do erro da estimativa, por ela vir de uma amostra;
+- o **intervalo de confiança de 95% (IC)**: a faixa de valores que, em 95% das amostras possíveis, conteria o valor da população;
+- o **coeficiente de variação (CV)**: o erro-padrão como porcentagem da estimativa. Ele permite comparar a precisão de estimativas de tamanhos diferentes.
+
+Nas taxas, o `survey_mean()` usa sempre `proportion = TRUE`. A opção não muda a estimativa nem o erro-padrão, só o intervalo de confiança. Sem ela, o IC é simétrico (a taxa mais ou menos 1,96 erro-padrão) e pode passar de 0% ou de 100% quando a taxa está perto desses limites ou quando a amostra do recorte é pequena. Com ela, o IC é calculado na escala logit, $\log\left(\frac{p}{1 - p}\right)$, e depois convertido de volta: fica sempre entre 0% e 100% e é assimétrico perto dos extremos, o que dá uma cobertura mais próxima dos 95% anunciados.
+
+O `prop_method = 'xlogit'` escolhe como fazer essa conta: a partir da taxa $p$ e do seu erro-padrão $EP$, os limites do intervalo são
+
+$$
+\text{logit}^{-1}\left(\log\frac{p}{1 - p} \pm 1{,}96 \, \frac{EP}{p \, (1 - p)}\right)
+$$
+
+O método padrão do `srvyr` (`'logit'`) chega ao mesmo intervalo ajustando uma regressão logística em cada grupo. Com o desenho calibrado, essa regressão às vezes não converge num recorte pequeno, e a taxa sai igual a zero sem nenhum erro. O `'xlogit'` não ajusta regressão, por isso não tem esse problema, e ainda é mais rápido.
+
+Para as UFs, o recorte é feito **no desenho**, e não na base. A base empilhada do bloco 5 não serve aqui: nela, as pessoas das UFs escolhidas aparecem duas vezes, e o desenho as contaria em dobro.
+
+No desenho, cada UF é um **domínio**. Um `filter()` no desenho não apaga as pessoas de fora: elas continuam lá, com peso zero, porque o erro-padrão depende de toda a amostra (estratos e UPAs). Por isso, um `filter()` seguido de `group_by(UF)` ainda cria um grupo para cada UF do país, e os grupos sem peso dão erro. O código junta as UFs que não estão na lista num só domínio (com a `UF` igual a `NA`), estima tudo de uma vez e descarta esse domínio no fim.
+
+```{r}
+#| label: participacao-desenho
+#| cache: true
+#| cache.extra: !expr list(ano, trimestre, ufs, file.mtime(arquivo_desenho))
+
+# Estimativa com erro-padrão, intervalo de confiança e CV, por sexo
+estima_participacao <- function(desenho) {
+  desenho |>
+    filter(V2009 >= 15) |>
+    group_by(sexo, .add = TRUE) |>
+    summarise(
+      taxa = survey_mean(
+        forca_trabalho,
+        vartype = c('se', 'ci', 'cv'),
+        proportion = TRUE, # IC pela escala logit, sempre entre 0 e 1
+        prop_method = 'xlogit' # logit calculado direto da média e do EP
+      )
+    )
+}
+
+participacao_desenho <- bind_rows(
+  desenho |>
+    estima_participacao() |>
+    mutate(recorte = 'Brasil'),
+  desenho |>
+    # UFs fora da lista viram um só domínio (NA), descartado no inner_join
+    mutate(UF = if_else(UF %in% ufs_escolhidas$UF, UF, NA)) |>
+    group_by(UF) |>
+    estima_participacao() |>
+    inner_join(ufs_escolhidas, by = 'UF') |>
+    mutate(recorte = nome_uf)
+) |>
+  mutate(
+    recorte = factor(recorte, levels = levels(pnadc_recortes$recorte)),
+    # Taxa, erro-padrão, limites do IC e CV passam para %
+    across(starts_with('taxa'), \(valor) valor * 100)
+  ) |>
+  select(recorte, sexo, starts_with('taxa'))
 ```
 
 ```{r}
-#| label: dplyr-vs-srvyr
-#| eval: false
+#| label: tbl-participacao-desenho
+#| tbl-cap: !expr "paste0('Taxa de participação na força de trabalho das pessoas de 15 anos ou mais (CMIG 1.3), com medidas de precisão, por sexo. Fonte: IBGE, PNAD Contínua, ', params$trimestre, 'º trimestre de ', params$ano, '.')"
 
-# Código a desenvolver: a estimativa do Dia 1 refeita com srvyr
+participacao_desenho |>
+  # A taxa calculada com o dplyr no bloco 5, para comparar
+  left_join(
+    participacao |> select(recorte, sexo, com_peso),
+    by = c('recorte', 'sexo')
+  ) |>
+  arrange(recorte, sexo) |>
+  select(
+    recorte, sexo, com_peso, taxa, taxa_se, taxa_low, taxa_upp, taxa_cv
+  ) |>
+  knitr::kable(
+    digits = c(0, 0, 1, 1, 2, 1, 1, 2),
+    format.args = list(decimal.mark = ','),
+    col.names = c(
+      'Recorte', 'Sexo', 'Taxa com dplyr (%)', 'Taxa com srvyr (%)',
+      'EP (p.p.)', 'IC 95%: inferior', 'IC 95%: superior', 'CV (%)'
+    )
+  )
 ```
 
-## 7. Reproduzindo o relatório
+As colunas "Taxa com dplyr" e "Taxa com srvyr" são iguais: o peso já acertava a estimativa pontual. O que o desenho acrescenta são as outras colunas. Na UF, a amostra é menor, e o erro-padrão e o CV são maiores que os do Brasil.
 
-*Texto a desenvolver:* as quatro famílias de indicador.
+### A taxa como razão
+
+Na seção "Os estimadores", a taxa foi escrita como a razão entre dois totais: o total de pessoas do numerador e o total de pessoas do denominador. O `survey_ratio()` calcula exatamente essa razão, com as dummies do numerador e do denominador, sem precisar de `filter()`:
 
 ```{r}
-#| label: indicadores
-#| eval: false
+#| label: taxa-como-razao
+#| cache: true
+#| cache.extra: !expr list(ano, trimestre, ufs, file.mtime(arquivo_desenho))
 
-# Código a desenvolver: taxa, média, razão e distribuição
+desenho |>
+  group_by(sexo) |>
+  summarise(
+    taxa = survey_ratio(
+      numerator = forca_trabalho * idade_15_mais, # numerador: N
+      denominator = idade_15_mais, # denominador: D
+      vartype = c('se', 'cv')
+    )
+  ) |>
+  mutate(across(starts_with('taxa'), \(valor) valor * 100)) |>
+  knitr::kable(
+    digits = c(0, 1, 2, 2),
+    format.args = list(decimal.mark = ','),
+    col.names = c('Sexo', 'Taxa (%)', 'EP (p.p.)', 'CV (%)')
+  )
 ```
 
-## 8. Comparar com rigor
+O resultado é o mesmo da tabela anterior para o Brasil, inclusive o erro-padrão. Calcular uma taxa num grupo da população é calcular uma razão: as duas formas são equivalentes.
 
-### Recortes territoriais e precisão
+### Os intervalos de confiança no gráfico
+
+O gráfico mostra cada taxa como um ponto, e o intervalo de confiança como uma linha horizontal em torno dele. Intervalos mais longos indicam estimativas menos precisas.
 
 ```{r}
-#| label: recortes
-#| eval: false
+#| label: fig-participacao-ic
+#| fig-height: 3
+#| fig-cap: !expr "paste0('Taxa de participação na força de trabalho das pessoas de 15 anos ou mais, por sexo, com intervalo de confiança de 95%. Fonte: IBGE, PNAD Contínua, ', params$trimestre, 'º trimestre de ', params$ano, '.')"
 
-# Código a desenvolver: Brasil, UFs e recorte capital, resto da RM e interior, com semáforo de CV
+grafico_ic <- participacao_desenho |>
+  mutate(
+    recorte = factor(recorte, levels = rev(levels(recorte))),
+    unidade = '%',
+    texto = paste0(
+      recorte, '<br>', sexo, ': ', formata_valor(taxa, unidade), '%',
+      '<br>IC 95%: ', formata_valor(taxa_low, unidade), '% a ',
+      formata_valor(taxa_upp, unidade), '%'
+    )
+  ) |>
+  ggplot(aes(
+    x = taxa, xmin = taxa_low, xmax = taxa_upp, y = recorte,
+    colour = sexo, text = texto
+  )) +
+  geom_pointrange(position = position_dodge(width = 0.5)) +
+  scale_colour_manual(values = cores_sexo) +
+  labs(x = 'Taxa de participação (%)', y = NULL, colour = NULL) +
+  theme_minimal() +
+  theme(panel.grid.major.y = element_blank())
+
+ggplotly(grafico_ic, tooltip = 'text') |>
+  layout(legend = legenda_topo) |>
+  config(displayModeBar = FALSE)
 ```
+
+## 7. Os indicadores com precisão
+
+O bloco 5 calculou todos os indicadores com o `dplyr`, e o bloco 6 mostrou como medir a precisão de um deles. Este bloco refaz no desenho amostral os indicadores do núcleo do curso, um para cada tipo de estimador da seção "Os estimadores":
+
+| Estimador | Indicador |
+|---|---|
+| Taxa | Taxa de desocupação (1.10) e informalidade no trabalho não agrícola (1.9) |
+| Média | Horas habitualmente trabalhadas por semana, pessoas ocupadas |
+| Razão | Razão entre o rendimento médio das mulheres e o dos homens (1.13), também por grupo ocupacional |
+| Distribuição | Nível de instrução da população de 25 anos ou mais (2.11) |
+
+::: {.callout-note}
+## Por que só o núcleo
+Cada estimativa no desenho leva de alguns segundos a algumas dezenas de segundos, porque o erro-padrão é calculado com as `r format(nrow(pnadc), big.mark = '.', decimal.mark = ',')` pessoas da amostra e com a calibração. Calcular os `r nrow(nomes_indicadores)` indicadores do bloco 5 dessa forma deixaria o relatório lento. Os demais indicadores podem ser calculados com as mesmas funções, quando a precisão deles for necessária.
+:::
+
+### Funções para os recortes
+
+O bloco 6 estimou a taxa de participação para o Brasil e, separadamente, para as UFs escolhidas, tratando as UFs como domínios. A função `por_recorte()` guarda esse procedimento para qualquer estimativa. Ela recebe o desenho e uma função que faz a estimativa, e devolve uma tabela com a coluna `recorte`, como a do bloco 5.
+
+As funções `taxa_sexo()` e `media_sexo()` fazem a estimativa por sexo. Os nomes das colunas são sempre os mesmos (`estimativa`, `estimativa_se`, `estimativa_low`, `estimativa_upp` e `estimativa_cv`), o que permite juntar indicadores diferentes na mesma tabela e no mesmo gráfico.
+
+```{r}
+#| label: funcoes-precisao
+
+# Estimativa para o Brasil e para as UFs escolhidas, como no bloco 6.
+# 'estima' é uma função que recebe o desenho e devolve as estimativas.
+# Com brasil = FALSE, só as UFs.
+por_recorte <- function(desenho, estima, brasil = TRUE) {
+  estimativa_brasil <- if (brasil) {
+    desenho |>
+      estima() |>
+      mutate(recorte = 'Brasil')
+  }
+
+  ufs <- desenho |>
+    # UFs fora da lista viram um só domínio (NA), descartado no inner_join
+    mutate(UF = if_else(UF %in% ufs_escolhidas$UF, UF, NA)) |>
+    group_by(UF) |>
+    estima() |>
+    inner_join(ufs_escolhidas, by = 'UF') |>
+    mutate(recorte = nome_uf)
+
+  bind_rows(estimativa_brasil, ufs) |>
+    ungroup() |>
+    mutate(
+      recorte = factor(recorte, levels = levels(pnadc_recortes$recorte))
+    ) |>
+    select(recorte, everything(), -any_of(c('UF', 'sigla', 'nome_uf')))
+}
+
+# Taxa por sexo: a média de uma dummy, com o IC pela escala logit (bloco 6).
+# As chaves duplas {{ }} passam o nome da variável para dentro da função.
+# O na.rm = TRUE é necessário porque as pessoas retiradas pelo filter()
+# continuam no desenho, com peso zero, e a dummy delas pode ser NA (por
+# exemplo, a informalidade de quem não está ocupado).
+taxa_sexo <- function(desenho, dummy) {
+  desenho |>
+    group_by(sexo, .add = TRUE) |>
+    summarise(
+      estimativa = survey_mean(
+        {{ dummy }},
+        na.rm = TRUE,
+        vartype = c('se', 'ci', 'cv'),
+        proportion = TRUE,
+        prop_method = 'xlogit'
+      )
+    ) |>
+    # Taxa, erro-padrão, limites do IC e CV passam para %
+    mutate(across(starts_with('estimativa'), \(valor) valor * 100))
+}
+
+# Média por sexo, entre as pessoas com valor informado
+media_sexo <- function(desenho, variavel) {
+  desenho |>
+    group_by(sexo, .add = TRUE) |>
+    summarise(
+      estimativa = survey_mean(
+        {{ variavel }},
+        na.rm = TRUE,
+        vartype = c('se', 'ci', 'cv')
+      )
+    ) |>
+    # Só o CV passa para %; a média fica na unidade da variável
+    mutate(estimativa_cv = estimativa_cv * 100)
+}
+
+# IC de 95% na escala logit, a partir de uma taxa p e do seu EP (entre 0
+# e 1): a mesma conta do prop_method = 'xlogit', para estimativas feitas fora
+# do survey_mean()
+ic_logit <- function(p, ep) {
+  margem <- qnorm(0.975) * ep / (p * (1 - p))
+  tibble(
+    inferior = plogis(qlogis(p) - margem),
+    superior = plogis(qlogis(p) + margem)
+  )
+}
+
+# Número com uma casa decimal, no formato brasileiro
+uma_casa <- function(x) {
+  scales::number(x, accuracy = 0.1, decimal.mark = ',', big.mark = '.')
+}
+
+# Tabela com a estimativa e as medidas de precisão
+tabela_precisao <- function(dados, ...) {
+  dados |>
+    mutate(
+      across(
+        c(estimativa, estimativa_low, estimativa_upp),
+        \(valor) formata_valor(valor, unidade)
+      ),
+      across(
+        c(estimativa_se, estimativa_cv),
+        \(valor) scales::number(valor, accuracy = 0.01, decimal.mark = ',')
+      )
+    ) |>
+    select(
+      ..., estimativa, estimativa_se, estimativa_low, estimativa_upp,
+      estimativa_cv
+    ) |>
+    knitr::kable(
+      col.names = c(
+        names(select(dados, ...)), 'Estimativa', 'EP', 'IC 95%: inferior',
+        'IC 95%: superior', 'CV (%)'
+      ),
+      align = c(rep('l', ncol(select(dados, ...))), rep('r', 5))
+    )
+}
+
+# Gráfico com a estimativa (ponto) e o IC de 95% (linha), por sexo
+grafico_precisao <- function(dados, eixo_y, rotulo_eixo) {
+  grafico <- dados |>
+    mutate(
+      eixo = factor({{ eixo_y }}, levels = rev(levels(factor({{ eixo_y }})))),
+      texto = paste0(
+        {{ eixo_y }}, '<br>', sexo, ': ',
+        formata_valor(estimativa, unidade), ' ', unidade,
+        '<br>IC 95%: ', formata_valor(estimativa_low, unidade), ' a ',
+        formata_valor(estimativa_upp, unidade)
+      )
+    ) |>
+    ggplot(aes(
+      x = estimativa, xmin = estimativa_low, xmax = estimativa_upp,
+      y = eixo, colour = sexo, text = texto
+    )) +
+    geom_pointrange(position = position_dodge(width = 0.5)) +
+    scale_colour_manual(values = cores_sexo) +
+    labs(x = rotulo_eixo, y = NULL, colour = NULL) +
+    theme_minimal() +
+    theme(panel.grid.major.y = element_blank())
+
+  ggplotly(grafico, tooltip = 'text') |>
+    layout(legend = legenda_topo) |>
+    config(displayModeBar = FALSE)
+}
+```
+
+### Taxa: desocupação e informalidade
+
+As duas taxas usam a função `taxa_sexo()`. O `filter()` define o denominador, e a dummy define o numerador, como nas funções `taxa()` do bloco 5:
+
+- **desocupação (1.10):** entre as pessoas na força de trabalho, as desocupadas;
+- **informalidade (1.9):** entre os ocupados em atividades não agrícolas, os informais.
+
+```{r}
+#| label: ind-trabalho
+#| cache: true
+#| cache.extra: !expr list(ano, trimestre, ufs, file.mtime(arquivo_desenho))
+
+taxas_trabalho <- bind_rows(
+  desenho |>
+    filter(forca_trabalho == 1) |>
+    por_recorte(\(d) taxa_sexo(d, desocupada)) |>
+    mutate(indicador = 'Taxa de desocupação (1.10)'),
+  desenho |>
+    filter(ocupada == 1, atividade_agricola == 0) |>
+    por_recorte(\(d) taxa_sexo(d, informal)) |>
+    mutate(indicador = 'Informalidade no trabalho não agrícola (1.9)')
+) |>
+  mutate(unidade = '%')
+```
+
+::: {.callout-note}
+## O aviso "strata have only one PSU in this subset"
+Este aviso pode aparecer aqui e em outros blocos. Ele indica que, no recorte estimado, algum estrato ficou com uma só UPA. Com uma UPA, não há como medir a variação dentro do estrato, e o cálculo do erro-padrão daria erro. As opções ligadas no bloco 6 (`survey.lonely.psu = 'adjust'` e `survey.adjust.domain.lonely = TRUE`) tratam esses casos: a variação do estrato é medida em torno da média geral. O aviso só informa que isso aconteceu; a estimativa continua válida.
+:::
+
+```{r}
+#| label: tbl-taxas-trabalho
+#| tbl-cap: !expr "paste0('Taxa de desocupação e informalidade no trabalho não agrícola, por sexo, com medidas de precisão (%). Fonte: IBGE, PNAD Contínua, ', params$trimestre, 'º trimestre de ', params$ano, '.')"
+
+taxas_trabalho |>
+  arrange(indicador, recorte, sexo) |>
+  rename(Indicador = indicador, Recorte = recorte, Sexo = sexo) |>
+  tabela_precisao(Indicador, Recorte, Sexo)
+```
+
+```{r}
+#| label: fig-taxas-trabalho
+#| fig-height: 4
+#| fig-cap: !expr "paste0('Taxa de desocupação e informalidade no trabalho não agrícola, por sexo, com intervalo de confiança de 95%. Fonte: IBGE, PNAD Contínua, ', params$trimestre, 'º trimestre de ', params$ano, '.')"
+
+taxas_trabalho |>
+  mutate(rotulo = paste0(str_remove(indicador, ' \\(.*'), ': ', recorte)) |>
+  grafico_precisao(rotulo, rotulo_eixo = '%')
+```
+
+### Média: horas trabalhadas
+
+A média de horas habitualmente trabalhadas por semana, em todos os trabalhos (`VD4031`), se refere às pessoas ocupadas. Ela complementa a ocupação em tempo parcial do bloco 5: mostra quanto tempo, em média, mulheres e homens dedicam ao trabalho remunerado.
+
+```{r}
+#| label: ind-horas
+#| cache: true
+#| cache.extra: !expr list(ano, trimestre, ufs, file.mtime(arquivo_desenho))
+
+horas_trabalho <- desenho |>
+  filter(ocupada == 1) |>
+  por_recorte(\(d) media_sexo(d, VD4031)) |>
+  mutate(unidade = 'horas')
+```
+
+```{r}
+#| label: tbl-horas-trabalho
+#| tbl-cap: !expr "paste0('Horas habitualmente trabalhadas por semana em todos os trabalhos, pessoas ocupadas, por sexo, com medidas de precisão. Fonte: IBGE, PNAD Contínua, ', params$trimestre, 'º trimestre de ', params$ano, '.')"
+
+horas_trabalho |>
+  rename(Recorte = recorte, Sexo = sexo) |>
+  tabela_precisao(Recorte, Sexo)
+```
+
+```{r}
+#| label: fig-horas-trabalho
+#| fig-height: 3
+#| fig-cap: !expr "paste0('Horas habitualmente trabalhadas por semana em todos os trabalhos, pessoas ocupadas, por sexo, com intervalo de confiança de 95%. Fonte: IBGE, PNAD Contínua, ', params$trimestre, 'º trimestre de ', params$ano, '.')"
+
+horas_trabalho |>
+  grafico_precisao(recorte, rotulo_eixo = 'Horas por semana')
+```
+
+### Razão: o rendimento das mulheres e o dos homens
+
+A razão de rendimento (1.13) divide o rendimento médio das mulheres ocupadas pelo dos homens ocupados. Cada média é, por sua vez, uma razão entre dois totais: o total de rendimento e o total de pessoas. A razão de rendimento junta quatro totais estimados:
+
+$$
+\hat{R} = \frac{\hat{Y}_M / \hat{N}_M}{\hat{Y}_H / \hat{N}_H} \times 100
+$$
+
+em que $\hat{Y}_M$ é o total de rendimento das mulheres ocupadas, $\hat{N}_M$ é o total de mulheres ocupadas, e $\hat{Y}_H$ e $\hat{N}_H$ são os mesmos totais para os homens. Só entram as pessoas com rendimento informado.
+
+Os quatro totais não são independentes: mulheres e homens moram nas mesmas UPAs e nos mesmos domicílios. A precisão da razão depende da precisão de cada total e da relação entre eles. O pacote `survey` resolve isso em dois passos:
+
+1. `svytotal()` estima os quatro totais de uma vez e guarda a matriz de covariância entre eles;
+2. `svycontrast()` calcula a razão a partir dos totais e o seu erro-padrão, por linearização (método delta).
+
+Para calcular a razão em vários grupos de uma vez, por exemplo nos grupos ocupacionais, cada grupo ganha os seus quatro totais, e todos são estimados no mesmo `svytotal()`. Como nenhuma pessoa é retirada do desenho, não há o problema dos grupos sem peso.
+
+```{r}
+#| label: funcao-razao
+
+# Razão entre o rendimento médio das mulheres e o dos homens ocupados, em %,
+# para cada categoria da variável 'grupo' (as pessoas com NA no grupo ficam
+# de fora)
+razao_rendimento <- function(desenho, grupo) {
+  dados <- desenho$variables
+
+  # Ocupados com rendimento informado
+  com_rendimento <- dados$ocupada %in% 1 & !is.na(dados$VD4019)
+  rendimento <- if_else(com_rendimento, dados$VD4019, 0)
+  mulher <- if_else(com_rendimento & dados$sexo == 'Mulher', 1, 0)
+  homem <- if_else(com_rendimento & dados$sexo == 'Homem', 1, 0)
+
+  categorias <- sort(unique(na.omit(dados[[grupo]])))
+  expressoes <- list()
+
+  for (k in seq_along(categorias)) {
+    no_grupo <- if_else(dados[[grupo]] %in% categorias[k], 1, 0)
+
+    # Os quatro totais da fórmula, só com as pessoas do grupo k
+    variaveis <- desenho$variables
+    variaveis[[paste0('y_mulher_', k)]] <- rendimento * mulher * no_grupo
+    variaveis[[paste0('n_mulher_', k)]] <- mulher * no_grupo
+    variaveis[[paste0('y_homem_', k)]] <- rendimento * homem * no_grupo
+    variaveis[[paste0('n_homem_', k)]] <- homem * no_grupo
+    desenho$variables <- variaveis
+
+    # A razão escrita com os nomes dos totais
+    expressoes[[k]] <- str2lang(sprintf(
+      '(y_mulher_%1$d / n_mulher_%1$d) / (y_homem_%1$d / n_homem_%1$d)', k
+    ))
+  }
+
+  totais <- svytotal(
+    reformulate(paste0(
+      c('y_mulher_', 'n_mulher_', 'y_homem_', 'n_homem_'),
+      rep(seq_along(categorias), each = 4)
+    )),
+    desenho
+  )
+  razao <- svycontrast(totais, expressoes)
+
+  tibble(
+    grupo = categorias,
+    estimativa = unname(coef(razao)) * 100,
+    estimativa_se = unname(SE(razao)) * 100
+  ) |>
+    mutate(
+      estimativa_low = estimativa - qnorm(0.975) * estimativa_se,
+      estimativa_upp = estimativa + qnorm(0.975) * estimativa_se,
+      estimativa_cv = estimativa_se / estimativa * 100
+    )
+}
+```
+
+A razão é calculada para o Brasil e para as UFs escolhidas (com a UF como grupo) e, no Brasil, para cada grupo ocupacional (`VD4011`), sem as ocupações maldefinidas. A razão não é uma taxa entre 0% e 100%, e o seu intervalo de confiança é o simétrico: a estimativa mais ou menos 1,96 erro-padrão.
+
+```{r}
+#| label: ind-rendimento
+#| cache: true
+#| cache.extra: !expr list(ano, trimestre, ufs, file.mtime(arquivo_desenho))
+
+grupos_ocupacionais <- c(
+  'Diretores e gerentes',
+  'Profissionais das ciências e intelectuais',
+  'Técnicos e profissionais de nível médio',
+  'Trabalhadores de apoio administrativo',
+  'Trabalhadores dos serviços, vendedores dos comércios e mercados',
+  'Trabalhadores qualificados da agropecuária, florestais, da caça e da pesca',
+  paste(
+    'Trabalhadores qualificados, operários e artesãos da construção,',
+    'das artes mecânicas e outros ofícios'
+  ),
+  'Operadores de instalações e máquinas e montadores',
+  'Ocupações elementares',
+  'Membros das forças armadas, policiais e bombeiros militares'
+)
+
+razao_recortes <- bind_rows(
+  desenho |>
+    mutate(brasil = 'Brasil') |>
+    razao_rendimento(grupo = 'brasil') |>
+    rename(recorte = grupo),
+  desenho |>
+    mutate(uf_escolhida = if_else(UF %in% ufs_escolhidas$UF, UF, NA)) |>
+    razao_rendimento(grupo = 'uf_escolhida') |>
+    inner_join(ufs_escolhidas, by = c('grupo' = 'UF')) |>
+    mutate(recorte = nome_uf) |>
+    select(-grupo, -sigla, -nome_uf)
+) |>
+  mutate(
+    recorte = factor(recorte, levels = levels(pnadc_recortes$recorte)),
+    unidade = '%'
+  )
+
+razao_grupos <- desenho |>
+  mutate(grupo_ocupacional = if_else(VD4011 %in% 1:10, VD4011, NA)) |>
+  razao_rendimento(grupo = 'grupo_ocupacional') |>
+  mutate(
+    grupo = factor(grupo, levels = 1:10, labels = grupos_ocupacionais),
+    unidade = '%'
+  )
+```
+
+```{r}
+#| label: tbl-razao-recortes
+#| tbl-cap: !expr "paste0('Razão entre o rendimento médio habitual de todos os trabalhos das mulheres e o dos homens, pessoas ocupadas (%). Fonte: IBGE, PNAD Contínua, ', params$trimestre, 'º trimestre de ', params$ano, '.')"
+
+razao_recortes |>
+  rename(Recorte = recorte) |>
+  tabela_precisao(Recorte)
+```
+
+```{r}
+#| label: tbl-razao-grupos
+#| tbl-cap: !expr "paste0('Razão entre o rendimento médio habitual de todos os trabalhos das mulheres e o dos homens, por grupo ocupacional, Brasil (%). Fonte: IBGE, PNAD Contínua, ', params$trimestre, 'º trimestre de ', params$ano, '.')"
+
+razao_grupos |>
+  rename(`Grupo ocupacional` = grupo) |>
+  tabela_precisao(`Grupo ocupacional`)
+```
+
+Uma razão de 100% indica rendimentos médios iguais. Quando o intervalo de confiança de um grupo não inclui 100%, a diferença entre mulheres e homens nesse grupo não pode ser atribuída ao acaso da amostra.
+
+### Distribuição: nível de instrução
+
+O nível de instrução (2.11) não é uma taxa, mas uma **distribuição**: a população de 25 anos ou mais dividida pelos quatro grupos de escolaridade, que somam 100% para cada sexo.
+
+O `svymean()` de uma variável categórica estima a distribuição inteira de uma vez: o percentual de cada categoria, com os erros-padrão. Com o `svyby()`, a distribuição é estimada para cada sexo.
+
+O IC é calculado na escala logit, pela função `ic_logit()`, a mesma conta do `prop_method = 'xlogit'`.
+
+```{r}
+#| label: ind-educacao
+#| cache: true
+#| cache.extra: !expr list(ano, trimestre, ufs, file.mtime(arquivo_desenho))
+
+# Distribuição por nível de instrução, por sexo, num desenho já recortado
+distribuicao_instrucao <- function(desenho) {
+  distribuicao <- svyby(
+    ~escolaridade, ~sexo,
+    desenho |> filter(V2009 >= 25),
+    svymean, na.rm = TRUE
+  )
+
+  # O svyby() devolve uma linha por sexo, com uma coluna por categoria
+  # ('escolaridadeSuperior completo') e uma de erro-padrão para cada uma
+  # ('se.escolaridadeSuperior completo'): aqui, uma linha por categoria
+  as_tibble(distribuicao) |>
+    pivot_longer(-sexo, names_to = 'nome', values_to = 'valor') |>
+    mutate(
+      medida = if_else(
+        str_starts(nome, 'se\\.'), 'estimativa_se', 'estimativa'
+      ),
+      escolaridade = factor(
+        str_remove(nome, '^(se\\.)?escolaridade'),
+        levels = levels(desenho$variables$escolaridade)
+      )
+    ) |>
+    select(-nome) |>
+    pivot_wider(names_from = medida, values_from = valor) |>
+    mutate(
+      ic_logit(estimativa, estimativa_se),
+      estimativa_cv = estimativa_se / estimativa * 100,
+      across(c(estimativa, estimativa_se, inferior, superior), \(x) x * 100)
+    ) |>
+    select(
+      sexo, escolaridade, estimativa, estimativa_se,
+      estimativa_low = inferior, estimativa_upp = superior, estimativa_cv
+    )
+}
+
+instrucao <- bind_rows(
+  desenho |>
+    distribuicao_instrucao() |>
+    mutate(recorte = 'Brasil'),
+  lapply(seq_len(nrow(ufs_escolhidas)), \(i) {
+    desenho |>
+      filter(UF == ufs_escolhidas$UF[i]) |>
+      distribuicao_instrucao() |>
+      mutate(recorte = ufs_escolhidas$nome_uf[i])
+  })
+) |>
+  mutate(
+    recorte = factor(recorte, levels = levels(pnadc_recortes$recorte)),
+    unidade = '%'
+  )
+```
+
+Aqui o recorte da UF pode ser feito com `filter()`, porque o `svyby()` agrupa só por sexo, e os dois grupos têm pessoas com peso em qualquer UF.
+
+```{r}
+#| label: tbl-instrucao
+#| tbl-cap: !expr "paste0('Distribuição das pessoas de 25 anos ou mais por nível de instrução, por sexo, com medidas de precisão (%). Fonte: IBGE, PNAD Contínua, ', params$trimestre, 'º trimestre de ', params$ano, '.')"
+
+instrucao |>
+  arrange(recorte, sexo, escolaridade) |>
+  rename(
+    Recorte = recorte, Sexo = sexo, `Nível de instrução` = escolaridade
+  ) |>
+  tabela_precisao(Recorte, Sexo, `Nível de instrução`)
+```
+
+## 8. Comparações
+
+### Recorte territorial e precisão
+
+Quanto menor o recorte, menos pessoas entrevistadas sustentam a estimativa, e maior o erro-padrão. Um mesmo indicador pode ser preciso para o Brasil e pouco confiável para o interior de uma UF. O **coeficiente de variação** (CV) resume isso num número, e um **semáforo** ajuda a ler a tabela:
+
+| CV | Leitura |
+|---|---|
+| Até 15% | 🟢 Precisa |
+| Mais de 15% até 30% | 🟡 Usar com cautela |
+| Mais de 30% | 🔴 Pouco precisa: não divulgar sozinha |
+
+Esses limites são uma convenção usada em muitas pesquisas domiciliares, e não uma regra única: cada instituição define os seus. O importante é decidir os limites antes de olhar os resultados e aplicá-los a todas as estimativas.
+
+A taxa de desocupação é calculada por sexo e por tipo de área (`territorio`: capital, resto da região metropolitana e interior) nas UFs escolhidas. Com `brasil = FALSE`, a função `por_recorte()` estima só as UFs.
+
+```{r}
+#| label: territorio
+#| cache: true
+#| cache.extra: !expr list(ano, trimestre, ufs, file.mtime(arquivo_desenho))
+
+semaforo_cv <- function(cv) {
+  case_when(
+    cv <= 15 ~ '🟢 Precisa',
+    cv <= 30 ~ '🟡 Usar com cautela',
+    .default = '🔴 Pouco precisa'
+  )
+}
+
+desocupacao_territorio <- desenho |>
+  filter(forca_trabalho == 1) |>
+  por_recorte(
+    \(d) {
+      d |>
+        group_by(territorio, .add = TRUE) |>
+        taxa_sexo(desocupada)
+    },
+    brasil = FALSE
+  ) |>
+  mutate(unidade = '%', semaforo = semaforo_cv(estimativa_cv))
+```
+
+```{r}
+#| label: tbl-territorio
+#| tbl-cap: !expr "paste0('Taxa de desocupação, por sexo e tipo de área, UFs escolhidas, com coeficiente de variação (%). Fonte: IBGE, PNAD Contínua, ', params$trimestre, 'º trimestre de ', params$ano, '.')"
+
+desocupacao_territorio |>
+  arrange(recorte, territorio, sexo) |>
+  mutate(
+    estimativa = formata_valor(estimativa, unidade),
+    estimativa_cv = uma_casa(estimativa_cv)
+  ) |>
+  select(recorte, territorio, sexo, estimativa, estimativa_cv, semaforo) |>
+  knitr::kable(
+    col.names = c(
+      'Recorte', 'Tipo de área', 'Sexo', 'Taxa (%)', 'CV (%)', 'Precisão'
+    ),
+    align = c('l', 'l', 'l', 'r', 'r', 'l')
+  )
+```
+
+Nas UFs sem região metropolitana além da capital, a linha "Resto da RM" não aparece. As estimativas marcadas em amarelo ou vermelho podem ser apresentadas, desde que acompanhadas do aviso sobre a precisão; uma alternativa é juntar categorias, por exemplo resto da RM e interior, para aumentar a amostra.
 
 ### Testes de hipóteses
 
-```{r}
-#| label: testes
-#| eval: false
+Duas estimativas diferentes não bastam para concluir que mulheres e homens são diferentes na população: a diferença pode vir só do acaso da amostra. Um **teste de hipóteses** mede isso. A hipótese nula é a de que não há diferença na população, e o **valor-p** é a probabilidade de observar uma diferença tão grande quanto a da amostra, se a hipótese nula fosse verdadeira. Valores-p abaixo de 5% levam a rejeitar a hipótese nula.
 
-# Código a desenvolver: teste t com desenho e qui-quadrado de Rao-Scott
+Os testes também precisam do desenho amostral. Um teste que trata a amostra como se as pessoas tivessem sido sorteadas uma a uma subestima o erro-padrão e rejeita a hipótese nula com mais facilidade do que deveria.
+
+#### Teste t: a diferença entre duas médias
+
+Os testes são feitos para o Brasil e para cada UF escolhida. A função abaixo devolve o desenho de um recorte. Como os testes não usam `group_by()`, a UF pode ser recortada com `filter()`.
+
+```{r}
+#| label: desenho-recorte
+
+# O desenho do Brasil inteiro ou de uma UF escolhida, pelo nome do recorte
+desenho_do_recorte <- function(recorte) {
+  if (recorte == 'Brasil') {
+    return(desenho)
+  }
+  uf <- ufs_escolhidas$UF[ufs_escolhidas$nome_uf == recorte]
+  desenho |>
+    filter(UF == uf)
+}
 ```
+
+O `svyttest()` compara a média de horas habitualmente trabalhadas por semana de mulheres e homens ocupados. O resultado é a diferença entre as médias (mulheres menos homens), com o intervalo de confiança e o valor-p.
+
+```{r}
+#| label: teste-t
+#| cache: true
+#| cache.extra: !expr list(ano, trimestre, ufs, file.mtime(arquivo_desenho))
+#| warning: false
+
+# warning: false esconde um aviso inofensivo: o svyglm() (usado também
+# pelo svyttest()) informa que ignorou as pessoas com peso zero deixadas
+# pelo filter()
+
+teste_horas <- lapply(levels(pnadc_recortes$recorte), \(nome) {
+  teste <- desenho_do_recorte(nome) |>
+    filter(ocupada == 1, !is.na(VD4031)) |>
+    svyttest(VD4031 ~ sexo, design = _)
+
+  tibble(
+    recorte = nome,
+    diferenca = unname(teste$estimate),
+    ic_inferior = teste$conf.int[1],
+    ic_superior = teste$conf.int[2],
+    valor_p = teste$p.value
+  )
+}) |>
+  bind_rows()
+
+teste_horas |>
+  mutate(
+    across(c(diferenca, ic_inferior, ic_superior), uma_casa),
+    valor_p = scales::pvalue(valor_p, accuracy = 0.001, decimal.mark = ',')
+  ) |>
+  knitr::kable(
+    col.names = c(
+      'Recorte', 'Diferença (horas)', 'IC 95%: inferior', 'IC 95%: superior',
+      'Valor-p'
+    ),
+    align = c('l', 'r', 'r', 'r', 'r')
+  )
+```
+
+#### Qui-quadrado de Rao-Scott: duas variáveis categóricas
+
+O teste qui-quadrado verifica se duas variáveis categóricas são independentes. Aqui, a pergunta é se mulheres e homens ocupados se distribuem da mesma forma pelos setores de atividade (1.8). O `svychisq()` aplica a correção de **Rao-Scott**, que ajusta a estatística do teste ao desenho amostral. Sem a correção, o teste usaria a fórmula de uma amostra aleatória simples e rejeitaria a independência com mais facilidade do que deveria.
+
+```{r}
+#| label: teste-qui-quadrado
+#| cache: true
+#| cache.extra: !expr list(ano, trimestre, ufs, file.mtime(arquivo_desenho))
+
+teste_setor <- lapply(levels(pnadc_recortes$recorte), \(nome) {
+  teste <- desenho_do_recorte(nome) |>
+    filter(ocupada == 1, !is.na(setor)) |>
+    svychisq(~sexo + setor, design = _)
+
+  tibble(
+    recorte = nome,
+    estatistica_f = unname(teste$statistic),
+    valor_p = teste$p.value
+  )
+}) |>
+  bind_rows()
+
+teste_setor |>
+  mutate(
+    estatistica_f = uma_casa(estatistica_f),
+    valor_p = scales::pvalue(valor_p, accuracy = 0.001, decimal.mark = ',')
+  ) |>
+  knitr::kable(
+    col.names = c('Recorte', 'Estatística F (Rao-Scott)', 'Valor-p'),
+    align = c('l', 'r', 'r')
+  )
+```
+
+::: {.callout-warning}
+## Significância estatística não é tamanho da diferença
+Com a amostra do Brasil, diferenças muito pequenas já são estatisticamente significativas. O valor-p diz se a diferença pode ser atribuída ao acaso, não se ela é grande ou importante. A interpretação depende sempre do tamanho da diferença, que é o que interessa para a análise de gênero.
+:::
 
 ### Regressão com desenho amostral
 
+A diferença de rendimento entre mulheres e homens pode refletir outras diferenças entre eles: idade, escolaridade, horas trabalhadas, presença de crianças pequenas em casa. Uma **regressão** estima a diferença entre os sexos mantendo essas outras características constantes.
+
+O rendimento entra no modelo em logaritmo. Assim, cada coeficiente $b$ se lê como uma diferença percentual: o rendimento de quem tem a característica é $(e^{b} - 1) 	imes 100$ por cento maior que o da categoria de referência, ou menor, se o resultado for negativo.
+
+O `svyglm()` ajusta a regressão levando em conta o desenho: os coeficientes usam os pesos, e os erros-padrão consideram estratos, UPAs e calibração. Os três modelos abaixo acrescentam variáveis aos poucos, para ver como a diferença entre mulheres e homens muda:
+
+1. só o sexo;
+2. com idade, cor ou raça e nível de instrução;
+3. com as horas habitualmente trabalhadas e a presença de criança de até 6 anos no domicílio.
+
 ```{r}
 #| label: regressao
-#| eval: false
+#| cache: true
+#| cache.extra: !expr list(ano, trimestre, ufs, file.mtime(arquivo_desenho))
+#| cache.vars: 'coeficientes'
+#| warning: false
 
-# Código a desenvolver: sequência de modelos com svyglm e gráfico de coeficientes
+# warning: false esconde um aviso inofensivo: o svyglm() informa que
+# ignorou as pessoas com peso zero deixadas pelo filter()
+
+# Ocupados com rendimento positivo: o logaritmo de zero não existe
+desenho_rendimento <- desenho |>
+  mutate(
+    log_rendimento = if_else(ocupada == 1 & VD4019 > 0, log(VD4019), NA)
+  ) |>
+  filter(!is.na(log_rendimento))
+
+modelos <- list(
+  'Modelo 1' = log_rendimento ~ sexo,
+  'Modelo 2' = log_rendimento ~ sexo + faixa_etaria + cor_raca + escolaridade,
+  'Modelo 3' = log_rendimento ~ sexo + faixa_etaria + cor_raca + escolaridade +
+    VD4031 + crianca_ate_6
+) |>
+  lapply(\(formula) svyglm(formula, design = desenho_rendimento))
+
+# Coeficientes de cada modelo, com IC de 95%, e as diferenças em %
+coeficientes <- lapply(names(modelos), \(nome) {
+  ajuste <- modelos[[nome]]
+  ic <- confint(ajuste)
+  tibble(
+    modelo = nome,
+    termo = names(coef(ajuste)),
+    coeficiente = unname(coef(ajuste)),
+    ic_inferior = ic[, 1],
+    ic_superior = ic[, 2]
+  )
+}) |>
+  bind_rows() |>
+  filter(termo != '(Intercept)') |>
+  mutate(
+    across(
+      c(coeficiente, ic_inferior, ic_superior),
+      \(b) (exp(b) - 1) * 100,
+      .names = '{.col}_pct'
+    )
+  )
 ```
 
-## 9. Atividade: um indicador novo
+```{r}
+#| label: tbl-regressao-sexo
+#| tbl-cap: !expr "paste0('Diferença de rendimento entre mulheres e homens ocupados nos modelos de regressão, Brasil (%). Fonte: IBGE, PNAD Contínua, ', params$trimestre, 'º trimestre de ', params$ano, '.')"
 
+coeficientes |>
+  filter(termo == 'sexoMulher') |>
+  mutate(
+    coeficiente = scales::number(coeficiente, accuracy = 0.001, decimal.mark = ','),
+    across(ends_with('_pct'), uma_casa)
+  ) |>
+  select(
+    modelo, coeficiente, coeficiente_pct, ic_inferior_pct, ic_superior_pct
+  ) |>
+  knitr::kable(
+    col.names = c(
+      'Modelo', 'Coeficiente', 'Diferença (%)', 'IC 95%: inferior',
+      'IC 95%: superior'
+    ),
+    align = c('l', 'r', 'r', 'r', 'r')
+  )
+```
+
+No modelo 1, a diferença compara o rendimento de mulheres e homens sem levar mais nada em conta. Nos modelos 2 e 3, compara mulheres e homens **com as mesmas características** incluídas no modelo. Se a diferença muda pouco de um modelo para outro, ela não se explica por essas características.
+
+O gráfico de coeficientes mostra o modelo 3 completo. Cada ponto é a diferença percentual de rendimento em relação à categoria de referência da variável (homem; menos de 16 anos, que entre os ocupados são as pessoas de 14 e 15 anos; branca; sem instrução e fundamental incompleto), mantidas as demais constantes. Para as horas trabalhadas, é a diferença associada a uma hora a mais por semana. Intervalos que cruzam a linha do zero indicam diferenças que não são estatisticamente diferentes de zero.
+
+```{r}
+#| label: fig-regressao
+#| fig-height: 5
+#| fig-cap: !expr "paste0('Diferença percentual de rendimento no modelo 3, com intervalo de confiança de 95%, pessoas ocupadas, Brasil. Fonte: IBGE, PNAD Contínua, ', params$trimestre, 'º trimestre de ', params$ano, '.')"
+
+# Nomes legíveis para os termos do modelo
+nomes_termos <- c(
+  sexoMulher = 'Mulher',
+  VD4031 = 'Horas trabalhadas (uma hora a mais)',
+  crianca_ate_6 = 'Criança de até 6 anos no domicílio'
+)
+
+grafico_coeficientes <- coeficientes |>
+  filter(modelo == 'Modelo 3') |>
+  mutate(
+    termo = coalesce(nomes_termos[termo], termo) |>
+      str_replace('^faixa_etaria', 'Idade: ') |>
+      str_replace('^cor_raca', 'Cor ou raça: ') |>
+      str_replace('^escolaridade', 'Instrução: '),
+    termo = factor(termo, levels = rev(termo)),
+    texto = paste0(
+      termo, ': ', uma_casa(coeficiente_pct), '%',
+      '<br>IC 95%: ', uma_casa(ic_inferior_pct), '% a ',
+      uma_casa(ic_superior_pct), '%'
+    )
+  ) |>
+  ggplot(aes(
+    x = coeficiente_pct, xmin = ic_inferior_pct, xmax = ic_superior_pct,
+    y = termo, text = texto
+  )) +
+  geom_vline(xintercept = 0, linetype = 'dashed', colour = 'grey40') +
+  geom_pointrange(colour = cores_sexo[['Homem']]) +
+  labs(x = 'Diferença de rendimento (%)', y = NULL) +
+  theme_minimal() +
+  theme(panel.grid.major.y = element_blank())
+
+ggplotly(grafico_coeficientes, tooltip = 'text') |>
+  config(displayModeBar = FALSE)
+```
+
+A regressão é feita para o Brasil. Para uma UF, basta acrescentar `UF == 33`, com o código da UF, ao `filter()` do primeiro passo; com amostras menores, os intervalos ficam mais largos.
+
+## 9. Seu indicador
+
+Este bloco é o espaço da atividade do Dia 2: em duplas, cada grupo cria um indicador que não está no relatório, calcula com o desenho amostral, faz um gráfico e testa uma comparação.
+
+<!-- dia: antes de "O exemplo abaixo mostra o caminho completo" -->
 Em duplas, preencham a ficha do indicador, calculem o indicador com o desenho amostral, façam um gráfico e testem uma comparação. Depois, incluam o resultado no [relatório](relatorio.qmd).
 
 ::: {.callout-note icon=false}
@@ -106,6 +1092,80 @@ Em duplas, preencham a ficha do indicador, calculem o indicador com o desenho am
 - **Comparação a testar:**
 :::
 
+<!-- /dia -->
+
+O exemplo abaixo mostra o caminho completo com um indicador de trabalho decente da Organização Internacional do Trabalho: a **taxa de ocupados com jornada excessiva**, de mais de 48 horas habituais por semana. Para a atividade, substitua a ficha e o código pelos do indicador da dupla.
+
+::: {.callout-note icon=false}
+## Ficha do indicador (exemplo)
+- **Nome:** Taxa de ocupados com jornada excessiva
+- **Definição:** taxa das pessoas ocupadas que trabalham habitualmente mais de 48 horas por semana, em todos os trabalhos
+- **Numerador:** pessoas ocupadas com 49 horas habituais ou mais por semana
+- **Denominador:** pessoas ocupadas de 14 anos ou mais
+- **População de referência:** pessoas ocupadas de 14 anos ou mais
+- **Variáveis da PNAD:** `VD4031` (horas habituais em todos os trabalhos) e `condicao_atividade`
+- **Desagregação:** sexo, Brasil e UFs escolhidas
+- **Comparação a testar:** a taxa das mulheres é diferente da dos homens?
+:::
+
+Este bloco não usa cache, porque é o bloco que muda durante a atividade: a cada renderização, ele é sempre calculado de novo.
+
+Uma variável nova pode ser criada direto no desenho, com `mutate()`, como numa base comum. Não é preciso gerar o desenho de novo: isso só é necessário quando muda o bloco 4.
+
+```{r}
+#| label: seu-indicador
+
+# 1. A dummy do numerador, criada no desenho
+desenho_indicador <- desenho |>
+  mutate(jornada_excessiva = if_else(VD4031 > 48, 1, 0))
+
+# 2. A taxa por sexo, para o Brasil e as UFs: o filter() define o denominador
+jornada <- desenho_indicador |>
+  filter(ocupada == 1) |>
+  por_recorte(\(d) taxa_sexo(d, jornada_excessiva)) |>
+  mutate(unidade = '%')
+```
+
+```{r}
+#| label: tbl-seu-indicador
+#| tbl-cap: !expr "paste0('Taxa de ocupados com jornada excessiva (mais de 48 horas habituais por semana), por sexo, com medidas de precisão (%). Fonte: IBGE, PNAD Contínua, ', params$trimestre, 'º trimestre de ', params$ano, '.')"
+
+jornada |>
+  rename(Recorte = recorte, Sexo = sexo) |>
+  tabela_precisao(Recorte, Sexo)
+```
+
+```{r}
+#| label: fig-seu-indicador
+#| fig-height: 3
+#| fig-cap: !expr "paste0('Taxa de ocupados com jornada excessiva, por sexo, com intervalo de confiança de 95%. Fonte: IBGE, PNAD Contínua, ', params$trimestre, 'º trimestre de ', params$ano, '.')"
+
+jornada |>
+  grafico_precisao(recorte, rotulo_eixo = '%')
+```
+
+```{r}
+#| label: teste-seu-indicador
+#| warning: false
+
+# warning: false esconde um aviso inofensivo: o svyglm() (usado também
+# pelo svyttest()) informa que ignorou as pessoas com peso zero deixadas
+# pelo filter()
+
+# 3. A comparação: a diferença entre as taxas de mulheres e homens, no
+#    Brasil. Com uma dummy, a diferença entre as médias é a diferença entre
+#    as taxas.
+teste_jornada <- desenho_indicador |>
+  filter(ocupada == 1) |>
+  svyttest(jornada_excessiva ~ sexo, design = _)
+
+teste_jornada
+```
+
+A diferença entre as taxas de mulheres e homens no Brasil é de `r uma_casa(teste_jornada$estimate * 100)` pontos percentuais (valor-p: `r scales::pvalue(teste_jornada$p.value, accuracy = 0.001, decimal.mark = ',')`).
+
+<!-- dia: fim -->
 ## Encerramento
 
 O mesmo relatório, renderizado para outro trimestre ou outra UF, trocando apenas os parâmetros `ano`, `trimestre` e `ufs`.
+<!-- /dia -->
