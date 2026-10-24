@@ -7,8 +7,11 @@ params:
   trimestre: 2
   ufs: ["RJ"]
   gerar_base: false
-  url_base: ""
-  url_desenho: ""
+  # Links longos quebrados com \ no fim da linha: o YAML emenda sem espaço
+  url_base: "https://zenodo.org/records/23552883/files/\
+    pnadc_2026_2t.csv.gz?download=1"
+  url_desenho: "https://zenodo.org/records/23552883/files/\
+    pnadc_2026_2t_desenho.rds?download=1"
 ---
 
 <!-- Página gerada por _sincroniza-dias.py: o texto e o código fora dos marcadores "dia" vêm do relatorio.qmd. Edite no relatório e rode o script de novo. -->
@@ -51,7 +54,7 @@ invisible(knitr::knit_child(text = linhas[inicio:fim], quiet = TRUE))
 
 ## 6. O desenho amostral
 
-O bloco 5 calculou as estimativas pontuais com o `dplyr`. Este bloco responde à pergunta que ficou em aberto: **o quanto confiar em cada número?** Para isso, é preciso dizer ao R como a amostra da PNAD Contínua foi sorteada.
+O bloco 5 calculou as estimativas pontuais com o `dplyr`. Este bloco responde à pergunta que ficou em aberto: **o quão preciso é cada número?** Para isso, é preciso dizer ao R como a amostra da PNAD Contínua foi sorteada.
 
 ### Por que o desenho importa
 
@@ -69,7 +72,7 @@ O pacote `srvyr` guarda essa estrutura num objeto de **desenho amostral**, e cal
 
 O desenho deste relatório parte do peso sem calibração (`V1027`), declara os dois estágios de seleção (`UPA` e `ID_DOMICILIO`) e os estratos (`Estrato`), e **refaz a calibração** pelas projeções de população: por domínio geográfico (`posest`, com os totais de `V1029`) e por sexo e idade (`posest_sxi`, com os totais de `V1033`). É o que faz a função `pnadc_design()`, do pacote `PNADcIBGE`. A calibração faz os totais estimados baterem com as projeções e reduz a variância das estimativas.
 
-Criar esse desenho leva alguns minutos, porque a calibração é refeita para as `r format(nrow(pnadc), big.mark = '.', decimal.mark = ',')` pessoas da amostra. Por isso, ele é criado uma única vez, gravado num arquivo `.rds` e publicado no Zenodo junto com a base. Em sala, o desenho é só lido.
+Criar esse desenho leva alguns minutos, porque a calibração é refeita para as `r format(nrow(pnadc), big.mark = '.', decimal.mark = ',')` pessoas da amostra. Por isso, ele é criado uma única vez, gravado num arquivo `.rds` e publicado no [Zenodo](https://doi.org/10.5281/zenodo.23552883) junto com a base. Em sala, o desenho é só lido.
 
 ::: {.callout-tip}
 ## Um atalho: o desenho direto do `get_pnadc()`
@@ -96,7 +99,7 @@ O relatório segue o caminho mais longo por dois motivos:
 - o bloco 5 calcula as estimativas com o `dplyr`, que trabalha com um data frame, não com um desenho;
 - em sala, a base e o desenho são só lidos, sem baixar os microdados.
 
-No atalho, o desenho também sai de outro jeito. O `get_pnadc()` sempre traz os 200 pesos replicados e, com eles na base, o desenho usa o *bootstrap*, como o IBGE, e não a linearização deste relatório (veja a caixa "Um erro-padrão um pouco diferente do divulgado pelo IBGE", mais abaixo). As estimativas são as mesmas, os erros-padrão podem ficar um pouco diferentes, e cada estimativa leva mais tempo. As variáveis novas também podem ser criadas com `mutate()` direto no desenho quando usamos o pacote `srvyr` com a função `as_survey()`:
+No atalho, o desenho também sai de outro jeito. O `get_pnadc()` sempre traz os 200 pesos replicados e, com eles na base, o desenho usa o *bootstrap*, como o IBGE, e não a linearização de Taylor deste relatório (veja a caixa ["Um erro-padrão um pouco diferente do divulgado pelo IBGE"](#erro-padrao-ibge), mais abaixo). As estimativas são as mesmas, os erros-padrão podem ficar um pouco diferentes, e cada estimativa leva mais tempo. As variáveis novas também podem ser criadas com `mutate()` direto no desenho quando usamos o pacote `srvyr` com a função `as_survey()`:
 
 ```r
 desenho_direto <- get_pnadc(
@@ -120,7 +123,7 @@ if (params$gerar_base) {
 
   # O pnadc_design() escolhe o método pelas colunas da base: com os pesos
   # replicados (V1028001 a V1028200), usa bootstrap; sem eles, refaz a
-  # calibração e usa linearização, que é o que queremos aqui
+  # calibração e usa linearização de Taylor, que é o que queremos aqui
   if (any(str_detect(names(pnadc), '^V1028[0-9]{3}$'))) {
     stop('A base tem pesos replicados: o pnadc_design() usaria bootstrap. ',
          'Gere o desenho a partir da base sem as réplicas.', call. = FALSE)
@@ -158,13 +161,27 @@ options(survey.adjust.domain.lonely = TRUE)
 desenho <- localiza_arquivo(arquivo_desenho, params$url_desenho) |>
   readRDS() |>
   as_survey() # converte o objeto do pacote survey para usar com o srvyr
-
-desenho
 ```
 
-::: {.callout-note}
+```{r}
+#| label: esconde-aviso-upa
+#| include: false
+
+# No relatório renderizado, esconde só o aviso de estrato com uma UPA
+# ("strata have only one PSU"), que se repete em muitos blocos. Os outros
+# avisos continuam aparecendo. Ao rodar os blocos no RStudio, ele aparece
+aviso_padrao <- knitr::knit_hooks$get('warning')
+knitr::knit_hooks$set(warning = function(x, options) {
+  if (any(grepl('only one PSU', x))) {
+    return('')
+  }
+  aviso_padrao(x, options)
+})
+```
+
+::: {#erro-padrao-ibge .callout-note}
 ## Um erro-padrão um pouco diferente do divulgado pelo IBGE
-O IBGE calcula a precisão das suas estimativas com **200 pesos replicados**, obtidos por *bootstrap*. Este relatório refaz a calibração e calcula a variância por **linearização**. Os dois métodos estimam a mesma variância por caminhos diferentes, e por isso os erros-padrão, os intervalos de confiança e os coeficientes de variação daqui podem ficar um pouco diferentes dos divulgados. **Essa diferença não é um erro.** As estimativas pontuais são idênticas.
+Desde o 3º trimestre de 2021, o IBGE calcula a precisão das estimativas da PNAD Contínua pelo **método de replicação *bootstrap***, com **200 pesos replicados**. Este relatório refaz a calibração e calcula a variância pelo **método do Conglomerado Primário com linearização de Taylor**, que o IBGE usava até então. Os dois métodos estimam a mesma variância por caminhos diferentes, e por isso os erros-padrão, os intervalos de confiança e os coeficientes de variação daqui podem ficar um pouco diferentes dos divulgados, como o próprio IBGE avisa na [Nota técnica 04/2021](https://biblioteca.ibge.gov.br/visualizacao/livros/liv101882.pdf) da PNAD Contínua. **Essa diferença não é um erro.** As estimativas pontuais são idênticas.
 :::
 
 ### A mesma taxa, agora com a precisão
@@ -302,9 +319,11 @@ grafico_ic <- participacao_desenho |>
       formata_valor(taxa_upp, unidade), '%'
     )
   ) |>
+  # group: Homem em cima e Mulher embaixo, na ordem da legenda
   ggplot(aes(
     x = taxa, xmin = taxa_low, xmax = taxa_upp, y = recorte,
-    colour = sexo, text = texto
+    colour = sexo, text = texto,
+    group = factor(sexo, levels = c('Mulher', 'Homem'))
   )) +
   geom_pointrange(position = position_dodge(width = 0.5)) +
   scale_colour_manual(values = cores_sexo) +
@@ -458,9 +477,11 @@ grafico_precisao <- function(dados, eixo_y, rotulo_eixo) {
         formata_valor(estimativa_upp, unidade)
       )
     ) |>
+    # group: Homem em cima e Mulher embaixo, na ordem da legenda
     ggplot(aes(
       x = estimativa, xmin = estimativa_low, xmax = estimativa_upp,
-      y = eixo, colour = sexo, text = texto
+      y = eixo, colour = sexo, text = texto,
+      group = factor(sexo, levels = c('Mulher', 'Homem'))
     )) +
     geom_pointrange(position = position_dodge(width = 0.5)) +
     scale_colour_manual(values = cores_sexo) +
@@ -501,7 +522,7 @@ taxas_trabalho <- bind_rows(
 
 ::: {.callout-note}
 ## O aviso "strata have only one PSU in this subset"
-Este aviso pode aparecer aqui e em outros blocos. Ele indica que, no recorte estimado, algum estrato ficou com uma só UPA. Com uma UPA, não há como medir a variação dentro do estrato, e o cálculo do erro-padrão daria erro. As opções ligadas no bloco 6 (`survey.lonely.psu = 'adjust'` e `survey.adjust.domain.lonely = TRUE`) tratam esses casos: a variação do estrato é medida em torno da média geral. O aviso só informa que isso aconteceu; a estimativa continua válida.
+Ao rodar os blocos do desenho no RStudio, este aviso pode aparecer várias vezes (no relatório renderizado, ele é escondido, porque se repete em muitos blocos). Ele indica que, no recorte estimado, algum estrato ficou com uma só UPA. Com uma UPA, não há como medir a variação dentro do estrato, e o cálculo do erro-padrão daria erro. As opções ligadas no bloco 6 (`survey.lonely.psu = 'adjust'` e `survey.adjust.domain.lonely = TRUE`) tratam esses casos: a variação do estrato é medida em torno da média geral. O aviso só informa que isso aconteceu; a estimativa continua válida.
 :::
 
 ```{r}

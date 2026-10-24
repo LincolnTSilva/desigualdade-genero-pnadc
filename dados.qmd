@@ -6,14 +6,21 @@ O curso usa os **microdados trimestrais da PNAD Contínua**, que reúnem trabalh
 
 ## Arquivos do curso
 
-O curso usa dois arquivos, publicados no Zenodo e lidos diretamente pelo [relatório](relatorio.qmd):
+O curso usa dois arquivos, publicados no [Zenodo](https://doi.org/10.5281/zenodo.23552883) e lidos diretamente pelo [relatório](relatorio.qmd):
 
 | Arquivo | Conteúdo | Usado em |
 |---|---|---|
 | Base do curso (`.csv.gz`) | Versão reduzida dos microdados, com as variáveis usadas no curso, em códigos. Mantém todas as pessoas da amostra e as variáveis do desenho amostral | Cálculos com o `dplyr` (blocos 4 e 5), lida com o `readr` |
 | Desenho amostral (`.rds`) | O desenho com a calibração refeita, já com as variáveis derivadas do bloco 4. Criá-lo leva alguns minutos; em sala, ele é só lido | Estimativas com precisão, testes e regressão (blocos 6 a 9), lido com `readRDS()` |
 
-*Os links do Zenodo serão disponibilizados aqui.*
+Os dois arquivos estão no registro [10.5281/zenodo.23552883](https://doi.org/10.5281/zenodo.23552883), junto com o dicionário da base, o dicionário original do IBGE, o código que gera a base e um README com a fonte, as etapas da geração e as limitações.
+
+[<i class="bi bi-download"></i> Base do curso (.csv.gz, 10,8 MB)](https://zenodo.org/records/23552883/files/pnadc_2026_2t.csv.gz?download=1){.btn .btn-primary}
+[<i class="bi bi-download"></i> Desenho amostral (.rds, 178 MB)](https://zenodo.org/records/23552883/files/pnadc_2026_2t_desenho.rds?download=1){.btn .btn-primary}
+
+Os links já estão nos parâmetros `url_base` e `url_desenho` do relatório: se os arquivos não estiverem na pasta `dados`, o relatório os baixa do [Zenodo](https://doi.org/10.5281/zenodo.23552883).
+
+**Como citar a base:** Silva, Lincoln (2026). *Base de ensino: PNAD Contínua, 2º trimestre de 2026, variáveis para indicadores de gênero* (versão 1.0) [Conjunto de dados]. Zenodo. <https://doi.org/10.5281/zenodo.23552883>. Fonte original: IBGE, Pesquisa Nacional por Amostra de Domicílios Contínua.
 
 ## Como a base foi gerada
 

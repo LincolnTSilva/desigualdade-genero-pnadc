@@ -19,7 +19,7 @@ Os indicadores seguem o Conjunto Mínimo de Indicadores de Gênero (CMIG) das Na
 | `_quarto.yml`, `tema.scss`, `styles.css` | Configuração e aparência do site |
 | `_freeze/` | Resultados guardados dos cálculos, usados na publicação do site |
 
-Os dados não ficam no repositório: a base do curso e o desenho amostral são publicados no Zenodo.
+Os dados não ficam no repositório: a base do curso e o desenho amostral são publicados no [Zenodo](https://doi.org/10.5281/zenodo.23552883).
 
 ## Como gerar o site
 

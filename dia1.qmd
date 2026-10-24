@@ -7,8 +7,11 @@ params:
   trimestre: 2
   ufs: ["RJ"]
   gerar_base: false
-  url_base: ""
-  url_desenho: ""
+  # Links longos quebrados com \ no fim da linha: o YAML emenda sem espaço
+  url_base: "https://zenodo.org/records/23552883/files/\
+    pnadc_2026_2t.csv.gz?download=1"
+  url_desenho: "https://zenodo.org/records/23552883/files/\
+    pnadc_2026_2t_desenho.rds?download=1"
 ---
 
 <!-- Página gerada por _sincroniza-dias.py: o texto e o código fora dos marcadores "dia" vêm do relatorio.qmd. Edite no relatório e rode o script de novo. -->
@@ -59,7 +62,7 @@ A Pesquisa Nacional por Amostra de Domicílios Contínua (PNAD Contínua) é a p
 
 **Os trimestres.** Cada domicílio é entrevistado cinco vezes, uma por trimestre. A cada trimestre, o IBGE divulga os microdados com todas as entrevistas daquele trimestre, de domicílios que estão em qualquer uma das cinco entrevistas. Este relatório usa os microdados do `r params$trimestre`º trimestre de `r params$ano`.
 
-**Questionário e dicionário.** O questionário mostra as perguntas como foram feitas, e a quem cada uma se aplica. O dicionário dos microdados trimestrais dá o nome de cada variável no arquivo, as suas categorias e os seus códigos. Ele pode ser baixado na [página de documentação dos microdados trimestrais](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/Documentacao/) do IBGE, no arquivo [`Dicionario_e_input`](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/Documentacao/Dicionario_e_input_20221031.zip) (o dicionário é a planilha `dicionario_PNADC_microdados_trimestral.xls`). As variáveis cujo nome começa com `VD` são **variáveis derivadas**, construídas pelo IBGE a partir de várias perguntas, como a condição de ocupação e o nível de instrução.
+**Questionário e dicionário.** O questionário mostra as perguntas como foram feitas, e a quem cada uma se aplica. O dicionário dos microdados trimestrais dá o nome de cada variável no arquivo, as suas categorias e os seus códigos. Ele pode ser baixado na [página de documentação dos microdados trimestrais](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/Documentacao/) do IBGE, no arquivo [`Dicionario_e_input`](https://ftp.ibge.gov.br/Trabalho_e_Rendimento/Pesquisa_Nacional_por_Amostra_de_Domicilios_continua/Trimestral/Microdados/Documentacao/Dicionario_e_input_20221031.zip) (o dicionário é a planilha `dicionario_PNADC_microdados_trimestral.xls`). Uma cópia da planilha está também no [registro da base do curso no Zenodo](https://doi.org/10.5281/zenodo.23552883), junto com o dicionário resumido da base. As variáveis cujo nome começa com `VD` são **variáveis derivadas**, construídas pelo IBGE a partir de várias perguntas, como a condição de ocupação e o nível de instrução.
 
 ::: {.callout-important}
 ## Indicadores de um trimestre
@@ -128,8 +131,9 @@ O relatório usa os pacotes abaixo. O `pacman` carrega todos de uma vez e instal
 ```{r}
 #| label: pacotes
 
-# Repositório do CRAN para instalar pacotes caso necessário
-options(repos = c(CRAN = 'https://cloud.r-project.org'))
+# Repositório do CRAN mantido pela Posit (RStudio), para instalar pacotes caso
+# necessário
+options(repos = c(CRAN = 'https://cran.rstudio.com'))
 
 if(!require(pacman)) {
   install.packages('pacman')
@@ -203,7 +207,8 @@ vars_chave <- c('Ano', 'Trimestre', 'UPA', 'V1008', 'V1014', 'V2003')
 # Capital e RM_RIDE não entram: a UF com a V1023 (tipo de área) já as identifica
 vars_local <- c('UF', 'V1022', 'V1023')
 
-# Desenho amostral (linearização com calibração por área geográfica e por sexo e idade)
+# Desenho amostral (linearização de Taylor, com calibração por área geográfica e
+# por sexo e idade)
 vars_desenho <- c(
   'Estrato', 'ID_DOMICILIO', 'V1027', 'V1028',
   'posest', 'V1029', 'posest_sxi', 'V1033'
@@ -233,7 +238,7 @@ vars_curso <- c(
 
 ### Geração da base a partir dos microdados
 
-Executado só com `gerar_base: true`. Gera a base do curso em `.csv.gz`, publicada no Zenodo e usada em todo o relatório. O desenho amostral é gerado e gravado no bloco 6, porque depende das variáveis criadas no bloco 4.
+Executado só com `gerar_base: true`. Gera a base do curso em `.csv.gz`, publicada no [Zenodo](https://doi.org/10.5281/zenodo.23552883) e usada em todo o relatório. O desenho amostral é gerado e gravado no bloco 6, porque depende das variáveis criadas no bloco 4.
 
 A geração tem cinco etapas, todas no mesmo bloco: o download dos microdados do trimestre, três checagens (das variáveis, da chave da pessoa e dos pesos) e a gravação da base. Qualquer problema numa checagem interrompe a geração antes da gravação. O `if` também protege quem roda o bloco pelo botão de play do RStudio, que não obedece à opção `eval`: com `gerar_base: false`, nada é baixado nem gravado.
 
@@ -412,6 +417,9 @@ localiza_arquivo <- function(arquivo, url) {
     # temporário com a mesma extensão do original (.csv.gz ou .rds)
     extensao <- sub('^[^.]*', '', basename(arquivo))
     temporario <- tempfile(fileext = extensao)
+    # O R interrompe downloads que passam de 60 segundos (padrão). O desenho
+    # é grande e, numa rede lenta, pode passar disso: o limite sobe para 10 mins
+    options(timeout = max(600, getOption('timeout')))
     download.file(url, temporario, mode = 'wb', quiet = TRUE)
     return(temporario)
   }
@@ -468,6 +476,30 @@ Com dummies, um total estimado é a soma dos pesos multiplicados pela dummy, com
 | `territorio` | `V1023` | Capital; Resto da RM; Interior (resto da RIDE e resto da UF) |
 | `situacao` | `V1022` | Urbana; Rural |
 | `condicao_atividade` | `V2009`, `VD4001`, `VD4002` | Menos de 14 anos; Fora da força de trabalho; Ocupada; Desocupada |
+
+A `condicao_atividade` segue as subdivisões da população usadas pelo IBGE na PNAD Contínua. A população em idade de trabalhar (14 anos ou mais) se divide entre a força de trabalho, que reúne as pessoas ocupadas e as desocupadas, e as pessoas fora da força de trabalho. Entre as ocupadas, as subocupadas por insuficiência de horas trabalhavam habitualmente menos de 40 horas por semana, queriam trabalhar mais e estavam disponíveis.
+
+```{mermaid}
+%%| fig-cap: "Subdivisões da população na PNAD Contínua. Adaptado de: Agência IBGE Notícias."
+
+%%{init: {"flowchart": {"rankSpacing": 40, "nodeSpacing": 20}}}%%
+flowchart TB
+  T["População total"] --> I["População em idade<br>de trabalhar<br>(14 anos ou mais)"]
+  T --> A["População abaixo da<br>idade de trabalhar<br>(menos de 14 anos)"]
+  I --> F["Pessoas na força<br>de trabalho"]
+  I --> N["Pessoas fora da força<br>de trabalho"]
+  F --> O["Ocupadas"]
+  F --> D["Desocupadas"]
+  O --> S["Ocupadas que trabalham<br>horas suficientes"]
+  O --> U["Subocupadas por<br>insuficiência de horas"]
+
+  classDef topo fill:#3d3170,stroke:#3d3170,color:#ffffff
+  classDef forca fill:#e4def4,stroke:#5b4a9b,color:#2e2550
+  classDef fora fill:#f1f1f1,stroke:#9a9a9a,color:#444444
+  class T,I topo
+  class F,O,D,S,U forca
+  class A,N fora
+```
 
 ```{r}
 #| label: recodificacao
@@ -767,7 +799,7 @@ mostra_codigo <- function(variavel, bloco, inteiro = FALSE,
 
 ### Das variáveis aos indicadores
 
-Os indicadores de razão/taxas/proporção do curso é uma razão entre um numerador e um denominador, calculados com as variáveis originais e as derivadas acima. Os blocos 5 a 7 calculam esses indicadores; a tabela mostra de onde cada um sai.
+Cada indicador do curso é uma razão entre um numerador e um denominador, calculados com as variáveis originais e as derivadas acima. Os blocos 5 a 7 calculam esses indicadores; a tabela mostra de onde cada um sai.
 
 Os códigos entre parênteses seguem a numeração usada pelo IBGE na publicação *Estatísticas de Gênero*. Na lista da ONU, a dimensão aparece em algarismos romanos: o indicador 1.3 daqui é o I.3 de lá, e o 4.3 é o IV.3.
 
@@ -808,7 +840,6 @@ A regra adotada: **só usam 15 anos os indicadores que dizem isso explicitamente
 | Taxa de conclusão dos anos iniciais do ensino fundamental (2.5) | Taxa | Pessoas de 13 a 15 anos com os anos iniciais concluídos (5 anos de estudo ou mais) | Pessoas de 13 a 15 anos | `VD3005`, `r mostra_codigo('idade', 'indicadores-sexo')` |
 | Taxa de conclusão do ensino fundamental (2.6) | Taxa | Pessoas de 17 a 19 anos com fundamental completo ou mais | Pessoas de 17 a 19 anos | `VD3004` (3 ou mais), `r mostra_codigo('idade', 'indicadores-sexo')` |
 | Taxa de conclusão do ensino médio | Taxa | Pessoas de 20 a 22 anos com médio completo ou mais | Pessoas de 20 a 22 anos | `VD3004` (5 ou mais), `r mostra_codigo('idade', 'indicadores-sexo')` |
-| Jovens que não estudam nem estão ocupados (1.7) | Taxa | Pessoas de 15 a 24 anos não ocupadas e que não frequentam escola | Pessoas de 15 a 24 anos | `r mostra_codigo('estuda', 'indicadores-sexo')`, `r mostra_codigo(c('condicao_atividade', 'ocupada'), c('recodificacao', 'indicadores-sexo'))`, `r mostra_codigo('idade', 'indicadores-sexo')` |
 
 : Todos os indicadores podem ser desagregados por `r mostra_codigo('cor_raca', 'recodificacao')`, `r mostra_codigo('faixa_etaria', 'recodificacao')`, `r mostra_codigo('regiao', 'recodificacao')`, `r mostra_codigo('territorio', 'recodificacao')` e `r mostra_codigo('situacao', 'recodificacao')`, sempre cruzando com `r mostra_codigo('sexo', 'recodificacao')`.
 
@@ -841,9 +872,9 @@ window.addEventListener('load', function () {
 ::: {.callout-note}
 ## Cuidados na leitura da tabela
 - **Pessoas ocupadas:** nos indicadores calculados entre os ocupados (informalidade, tempo parcial, posição na ocupação, setor, cargos gerenciais e rendimento), a população são os ocupados de 14 anos ou mais, o padrão do IBGE.
-- **Frequência escolar líquida (anos finais do fundamental, ensino médio e ensino superior):** é uma aproximação dos indicadores 2.3 e 2.4 do CMIG. Pela definição da ONU, esses indicadores são **taxas brutas de matrícula**: no numerador entram os matriculados na etapa de qualquer idade, e no denominador, a população na idade prevista para ela. Com o atraso escolar no Brasil, muitos alunos estão com idade prevista acima da esperada para determinado ano letivo, e a taxa bruta passa de 100%, o que dificulta a leitura. Por isso, decidiu-se calcular a frequência líquida: conta só quem está na idade prevista para a etapa **e** frequenta essa etapa, no ensino regular ou na EJA (no superior, a graduação e a pós-graduação). Na EJA do fundamental, só entra quem está do 6º ao 9º ano; quem estuda em cursos organizados de outra forma (por semestre, por exemplo) pode ficar de fora.
+- **Frequência escolar líquida (anos finais do fundamental, ensino médio e ensino superior):** é uma aproximação dos indicadores 2.3 e 2.4 do CMIG. Pela definição da ONU, esses indicadores são **taxas brutas de matrícula**: no numerador entram os matriculados na etapa de qualquer idade, e no denominador, a população na idade prevista para ela. Com o atraso escolar no Brasil, muitos alunos têm idade acima da prevista para a série que cursam, e a taxa bruta passa de 100%, o que dificulta a leitura. Por isso, decidiu-se calcular a frequência líquida: conta só quem está na idade prevista para a etapa **e** frequenta essa etapa, no ensino regular ou na EJA (no superior, a graduação e a pós-graduação). Na EJA do fundamental, só entra quem está do 6º ao 9º ano; quem estuda em cursos organizados de outra forma (por semestre, por exemplo) pode ficar de fora.
 - **Conclusão dos anos iniciais do fundamental (2.5):** a PNAD Contínua não pergunta diretamente se a pessoa concluiu os anos iniciais. O indicador usa os anos de estudo (`VD3005`), que o IBGE já padroniza para o ensino fundamental de 9 anos: quem tem 5 anos de estudo ou mais concluiu o 5º ano, o último dos anos iniciais.
-- **Jovens que não estudam nem estão ocupados:** a publicação *Estatísticas de Gênero* do IBGE também exclui quem estava em curso de qualificação profissional, informação que não está na base do curso. Por isso, o indicador calculado aqui inclui mais pessoas e tende a ficar acima do publicado.
+- **Frequência escolar líquida ao longo do ano:** a idade avança durante o ano, mas a série escolar só muda no início do ano letivo. Por isso, a frequência líquida tende a cair do 2º para o 4º trimestre e a subir de novo no 1º. Para comparar anos diferentes, use o mesmo trimestre; nos indicadores de educação, o IBGE usa o 2º trimestre.
 :::
 
 ## 5. Primeiras estimativas e primeiros gráficos
@@ -1093,8 +1124,7 @@ indicadores_sexo <- pnadc_recortes |>
     ocupada = if_else(condicao_atividade %in% 'Ocupada', 1, 0),
     desocupada = if_else(condicao_atividade %in% 'Desocupada', 1, 0),
     # Força de trabalho = ocupados + desocupados: a soma de duas dummies
-    forca_trabalho = ocupada + desocupada,
-    estuda = if_else(V3002 %in% 1, 1, 0)
+    forca_trabalho = ocupada + desocupada
   ) |>
   group_by(recorte, sexo) |>
   
@@ -1261,12 +1291,6 @@ indicadores_sexo <- pnadc_recortes |>
       denominador = idade >= 20 & idade <= 22,
       peso = V1028
     ),
-    # CMIG 1.7
-    nao_estuda_nem_ocupado = taxa(
-      numerador = idade >= 15 & idade <= 24 & estuda == 0 & ocupada == 0,
-      denominador = idade >= 15 & idade <= 24,
-      peso = V1028
-    ),
     .groups = 'drop'
   )
 ```
@@ -1350,13 +1374,7 @@ nomes_indicadores <- bind_rows(
   ),
   'Educação' = tribble(
     ~variavel, ~indicador,
-    'instrucao_fundamental_incompleto',
-    '25 anos ou mais: sem instrução e fundamental incompleto (2.11)',
-    'instrucao_medio_incompleto',
-    '25 anos ou mais: fundamental completo e médio incompleto (2.11)',
-    'instrucao_superior_incompleto',
-    '25 anos ou mais: médio completo e superior incompleto (2.11)',
-    'instrucao_superior_completo', '25 anos ou mais: superior completo (2.11)',
+    # Ordem pela idade: frequência, conclusão e, por fim, 25 anos ou mais
     'frequencia_liquida_anos_finais',
     'Frequência líquida, anos finais do fundamental, 11 a 14 anos',
     'frequencia_liquida_medio', 'Frequência líquida, ensino médio, 15 a 17 anos',
@@ -1367,8 +1385,13 @@ nomes_indicadores <- bind_rows(
     'conclusao_fundamental',
     'Conclusão do ensino fundamental, 17 a 19 anos (2.6)',
     'conclusao_medio', 'Conclusão do ensino médio, 20 a 22 anos',
-    'nao_estuda_nem_ocupado',
-    'Jovens de 15 a 24 anos que não estudam nem estão ocupados (1.7)'
+    'instrucao_fundamental_incompleto',
+    '25 anos ou mais: sem instrução e fundamental incompleto (2.11)',
+    'instrucao_medio_incompleto',
+    '25 anos ou mais: fundamental completo e médio incompleto (2.11)',
+    'instrucao_superior_incompleto',
+    '25 anos ou mais: médio completo e superior incompleto (2.11)',
+    'instrucao_superior_completo', '25 anos ou mais: superior completo (2.11)'
   ),
   'Comparação' = tribble(
     ~variavel, ~indicador,
@@ -1450,6 +1473,50 @@ indicadores_comparacao_longo |>
 As tabelas trazem um número para cada indicador, sem erro-padrão, intervalo de confiança ou coeficiente de variação. Numa UF, a amostra é bem menor que a do Brasil, e alguns indicadores podem se apoiar em poucas pessoas entrevistadas. Antes de comparar dois números ou tirar conclusões, é preciso medir a precisão de cada estimador. Para isso, é preciso declarar o desenho amostral, que é o assunto do bloco 6.
 :::
 
+## Exercício: Construir um indicador para um novo domínio
+
+```{r}
+#| label: Exercício - dplyr
+
+# Criar indicador - formato longo
+meu_indicador <- pnadc |> 
+  # Domínio de estimação
+  filter(UF %in% 31:35) |>
+  # No domínio de estimação, para quais agrupamento teremos os inicadores
+  group_by(UF, sexo) |> 
+  summarise(
+    rendimento = media(
+      valor = VD4019,
+      denominador = condicao_atividade == 'Ocupada',
+      peso = V1028
+    ) |> 
+      round(0), 
+    .groups = 'drop'
+  ) |> 
+  # Obter o nome da Unidade da Federação
+  left_join(
+    tabela_ufs |> 
+      select(UF, nome_uf), 
+    by = 'UF'
+  ) |> 
+  select(!UF) |> 
+  relocate(nome_uf, .before = everything())
+
+# Exibir indicador
+meu_indicador  |> 
+  # Transformar no formato wide
+  pivot_wider(
+    values_from = rendimento, 
+    names_from = sexo
+  ) |> 
+  # Incluir a diferença percentual do rendimento entre Homens e Mulheres
+  mutate(
+    dif_percentual = ((Mulher/Homem - 1) * 100) |> 
+      round(2)
+  )
+```
+
+
 ### Os gráficos
 
 Os gráficos partem das tabelas no formato longo. As cores seguem a publicação do IBGE, com os homens em roxo e as mulheres em laranja, e são guardadas num objeto para todos os gráficos do relatório.
@@ -1481,7 +1548,13 @@ grafico_indicadores <- function(dados, rotulo_eixo) {
         recorte, '<br>', sexo, ': ', formata_valor(valor, unidade), ' ', unidade
       )
     ) |>
-    ggplot(aes(x = valor, y = indicador, fill = sexo, text = texto)) +
+    # group define a posição das barras: nos gráficos horizontais, o primeiro
+    # grupo fica embaixo, então Mulher vem antes para Homem aparecer em cima,
+    # na mesma ordem da legenda (a do dicionário do IBGE)
+    ggplot(aes(
+      x = valor, y = indicador, fill = sexo, text = texto,
+      group = factor(sexo, levels = c('Mulher', 'Homem'))
+    )) +
     geom_col(position = position_dodge(width = 0.8), width = 0.7) +
     facet_wrap(vars(recorte)) +
     scale_fill_manual(values = cores_sexo) +
@@ -1524,7 +1597,6 @@ indicadores_sexo_longo |>
   filter(unidade == 'R$') |>
   grafico_indicadores(rotulo_eixo = 'R$ por mês')
 ```
-
 Os indicadores de comparação já resumem a diferença entre mulheres e homens num número só. Três deles medem a participação das mulheres num grupo de trabalhadores. O gráfico tem uma barra para cada recorte, e uma linha vertical marca os 50%, o ponto em que mulheres e homens estariam em igual número. A razão de rendimento fica só na tabela, porque a sua referência de igualdade é outra: 100%.
 
 ```{r}
@@ -1547,7 +1619,16 @@ grafico_comparacao <- indicadores_comparacao_longo |>
     ),
     texto = paste0(recorte, ': ', formata_valor(valor, unidade), '%')
   ) |>
-  ggplot(aes(x = valor, y = indicador, fill = recorte, text = texto)) +
+  # group: na ordem inversa, para o Brasil ficar em cima e as UFs abaixo,
+  # na mesma ordem da legenda
+  ggplot(
+    aes(
+      x = valor, y = indicador, fill = recorte, text = texto,
+      group = factor(
+        recorte, levels = rev(levels(pnadc_recortes$recorte))
+      )
+    )
+  ) +
   geom_col(position = position_dodge(width = 0.8), width = 0.7) +
   geom_vline(xintercept = 50, linetype = 'dashed', colour = 'grey40') +
   scale_fill_manual(values = cores_recorte) +
@@ -1569,13 +1650,18 @@ ggplotly(grafico_comparacao, tooltip = 'text') |>
 Para um relatório em PDF ou Word, basta fazer a função devolver o objeto `grafico` em vez de chamar o `ggplotly()`: o gráfico sai estático.
 :::
 
-<!-- dia: fim -->
-## Para levar ao Dia 2
+## Exercício: Faça um gráfico do seu indicador
 
 ```{r}
-#| label: salvar-base
-#| eval: false
-
-# Código a desenvolver: salvar a base recodificada, que é o ponto de partida do Dia 2
+meu_indicador |> 
+  mutate(
+    indicador = 'Rendimento médio habitual de todos os trabalho' |> 
+      as.factor(), 
+    recorte = nome_uf, 
+    unidade = 'R$'
+  ) |> 
+  rename(valor = rendimento) |> 
+  grafico_indicadores(
+    rotulo_eixo = '(R$)'
+  ) 
 ```
-<!-- /dia -->

@@ -20,10 +20,11 @@ Os computadores do laboratório estarão configurados antes do curso, com R, RSt
 No console do R:
 
 ```r
-# Repositório do CRAN para instalar pacotes caso necessário
-options(repos = c(CRAN = 'https://cloud.r-project.org'))
+# Repositório do CRAN mantido pela Posit (RStudio), para instalar pacotes caso
+# necessário
+options(repos = c(CRAN = 'https://cran.rstudio.com'))
 
-if(!require(pacman)) {
+if (!requireNamespace('pacman', quietly = TRUE)) {
   install.packages('pacman')
 }
 
@@ -36,6 +37,9 @@ pacman::p_load(
 
 [<i class="bi bi-download"></i> Baixar o relatório (.qmd)](downloads/relatorio.qmd){.btn .btn-primary}
 
-Depois de baixar, abra o arquivo no RStudio e clique em **Render**.
+[<i class="bi bi-download"></i> Base do curso (.csv.gz, 10,8 MB)](https://zenodo.org/records/23552883/files/pnadc_2026_2t.csv.gz?download=1){.btn .btn-primary}
+[<i class="bi bi-download"></i> Desenho amostral (.rds, 178 MB)](https://zenodo.org/records/23552883/files/pnadc_2026_2t_desenho.rds?download=1){.btn .btn-primary}
 
-*Os links da base de dados serão disponibilizados na página [Dados](dados.qmd).*
+Salve a base e o desenho numa pasta `dados`, ao lado do relatório. Depois, abra o relatório no RStudio e clique em **Render**. Se a pasta `dados` não existir, o relatório baixa os dois arquivos do [Zenodo](https://doi.org/10.5281/zenodo.23552883) sozinho, o que leva mais tempo.
+
+Mais detalhes sobre os arquivos na página [Dados](dados.qmd).
