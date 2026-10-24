@@ -266,22 +266,24 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="instale-os-pacotes" class="level2">
 <h2 class="anchored" data-anchor-id="instale-os-pacotes">2. Instale os pacotes</h2>
 <p>No console do R:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Repositório do CRAN para instalar pacotes caso necessário</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">repos =</span> <span class="fu">c</span>(<span class="at">CRAN =</span> <span class="st">'https://cloud.r-project.org'</span>))</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">require</span>(pacman)) {</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">install.packages</span>(<span class="st">'pacman'</span>)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  dplyr, tidyr, stringr, ggplot2, plotly, readr, survey, srvyr, PNADcIBGE</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Repositório do CRAN mantido pela Posit (RStudio), para instalar pacotes caso</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># necessário</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">repos =</span> <span class="fu">c</span>(<span class="at">CRAN =</span> <span class="st">'https://cran.rstudio.com'</span>))</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">requireNamespace</span>(<span class="st">'pacman'</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>)) {</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">install.packages</span>(<span class="st">'pacman'</span>)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  dplyr, tidyr, stringr, ggplot2, plotly, readr, survey, srvyr, PNADcIBGE</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="baixe-o-relatório-e-a-base" class="level2">
 <h2 class="anchored" data-anchor-id="baixe-o-relatório-e-a-base">3. Baixe o relatório e a base</h2>
 <p><a href="downloads/relatorio.qmd" class="btn btn-primary"><i class="bi bi-download"></i> Baixar o relatório (.qmd)</a></p>
-<p>Depois de baixar, abra o arquivo no RStudio e clique em <strong>Render</strong>.</p>
-<p><em>Os links da base de dados serão disponibilizados na página <a href="./dados.html">Dados</a>.</em></p>
+<p><a href="https://zenodo.org/records/23552883/files/pnadc_2026_2t.csv.gz?download=1" class="btn btn-primary"><i class="bi bi-download"></i> Base do curso (.csv.gz, 10,8 MB)</a> <a href="https://zenodo.org/records/23552883/files/pnadc_2026_2t_desenho.rds?download=1" class="btn btn-primary"><i class="bi bi-download"></i> Desenho amostral (.rds, 178 MB)</a></p>
+<p>Salve a base e o desenho numa pasta <code>dados</code>, ao lado do relatório. Depois, abra o relatório no RStudio e clique em <strong>Render</strong>. Se a pasta <code>dados</code> não existir, o relatório baixa os dois arquivos do <a href="https://doi.org/10.5281/zenodo.23552883">Zenodo</a> sozinho, o que leva mais tempo.</p>
+<p>Mais detalhes sobre os arquivos na página <a href="./dados.html">Dados</a>.</p>
 
 
 </section>

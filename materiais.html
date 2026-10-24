@@ -217,7 +217,7 @@ ul.task-list li input[type="checkbox"] {
 <h2 class="anchored" data-anchor-id="relatório-final">Relatório final</h2>
 <p><a href="./relatorio.html">Relatório em Quarto</a>, parametrizado por ano, trimestre e uma lista de UFs, com os indicadores do curso.</p>
 <p><a href="downloads/relatorio.qmd" class="btn btn-primary"><i class="bi bi-download"></i> Baixar o relatório (.qmd)</a></p>
-<p>Depois de baixar, é possível gerar o relatório com os parâmetros pré-definidos abrindo o arquivo no RStudio e clicar em <strong>Render</strong>. Os dados são lidos do Zenodo pelos links indicados nos parâmetros do cabeçalho, localmente ou usando o pacote <code>PNADcIBGE</code>.</p>
+<p>Depois de baixar, é possível gerar o relatório com os parâmetros pré-definidos abrindo o arquivo no RStudio e clicar em <strong>Render</strong>. Os dados são lidos do <a href="https://doi.org/10.5281/zenodo.23552883">Zenodo</a> pelos links indicados nos parâmetros do cabeçalho, localmente ou usando o pacote <code>PNADcIBGE</code>.</p>
 </section>
 <section id="ficha-de-indicador" class="level2">
 <h2 class="anchored" data-anchor-id="ficha-de-indicador">Ficha de indicador</h2>
@@ -647,60 +647,53 @@ ul.task-list li input[type="checkbox"] {
 <td></td>
 </tr>
 <tr class="even">
-<td>Nível de instrução da população de 25 anos ou mais (2.11)</td>
-<td>Distribuição</td>
-<td>Pessoas em cada grupo de escolaridade</td>
-<td>Pessoas de 25 anos ou mais</td>
-<td><code>VD3004</code> (bloco 5), <code>escolaridade</code> (bloco 7), <code>idade</code></td>
-</tr>
-<tr class="odd">
 <td>Taxa de frequência escolar líquida nos anos finais do ensino fundamental</td>
 <td>Taxa</td>
 <td>Pessoas de 11 a 14 anos matriculadas do 6º ao 9º ano do fundamental, no ensino regular ou na EJA</td>
 <td>Pessoas de 11 a 14 anos</td>
 <td><code>V3003A</code> (4 e 5), <code>V3006</code> (6 a 9), <code>idade</code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Taxa de frequência escolar líquida no ensino médio</td>
 <td>Taxa</td>
 <td>Pessoas de 15 a 17 anos matriculadas no ensino médio, regular ou EJA</td>
 <td>Pessoas de 15 a 17 anos</td>
 <td><code>V3003A</code> (6 e 7), <code>idade</code></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Taxa de frequência escolar líquida no ensino superior</td>
 <td>Taxa</td>
 <td>Pessoas de 18 a 24 anos matriculadas na graduação ou na pós-graduação</td>
 <td>Pessoas de 18 a 24 anos</td>
 <td><code>V3003A</code> (8 a 11), <code>idade</code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Taxa de conclusão dos anos iniciais do ensino fundamental (2.5)</td>
 <td>Taxa</td>
 <td>Pessoas de 13 a 15 anos com os anos iniciais concluídos (5 anos de estudo ou mais)</td>
 <td>Pessoas de 13 a 15 anos</td>
 <td><code>VD3005</code>, <code>idade</code></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Taxa de conclusão do ensino fundamental (2.6)</td>
 <td>Taxa</td>
 <td>Pessoas de 17 a 19 anos com fundamental completo ou mais</td>
 <td>Pessoas de 17 a 19 anos</td>
 <td><code>VD3004</code> (3 ou mais), <code>idade</code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Taxa de conclusão do ensino médio</td>
 <td>Taxa</td>
 <td>Pessoas de 20 a 22 anos com médio completo ou mais</td>
 <td>Pessoas de 20 a 22 anos</td>
 <td><code>VD3004</code> (5 ou mais), <code>idade</code></td>
 </tr>
-<tr class="odd">
-<td>Jovens que não estudam nem estão ocupados (1.7)</td>
-<td>Taxa</td>
-<td>Pessoas de 15 a 24 anos não ocupadas e que não frequentam escola</td>
-<td>Pessoas de 15 a 24 anos</td>
-<td><code>estuda</code>, <code>ocupada</code>, <code>idade</code></td>
+<tr class="even">
+<td>Nível de instrução da população de 25 anos ou mais (2.11)</td>
+<td>Distribuição</td>
+<td>Pessoas em cada grupo de escolaridade</td>
+<td>Pessoas de 25 anos ou mais</td>
+<td><code>VD3004</code> (bloco 5), <code>escolaridade</code> (bloco 7), <code>idade</code></td>
 </tr>
 </tbody>
 </table>
@@ -716,9 +709,9 @@ ul.task-list li input[type="checkbox"] {
 <div class="callout-body-container callout-body">
 <ul>
 <li><strong>Pessoas ocupadas:</strong> nos indicadores calculados entre os ocupados (informalidade, tempo parcial, posição na ocupação, setor, cargos gerenciais e rendimento), a população são os ocupados de 14 anos ou mais, o padrão do IBGE.</li>
-<li><strong>Frequência escolar líquida (anos finais do fundamental, ensino médio e ensino superior):</strong> é uma aproximação dos indicadores 2.3 e 2.4 do CMIG. Pela definição da ONU, esses indicadores são <strong>taxas brutas de matrícula</strong>: no numerador entram os matriculados na etapa de qualquer idade, e no denominador, a população na idade prevista para ela. Com o atraso escolar no Brasil, muitos alunos estão com idade prevista acima da esperada para determinado ano letivo, e a taxa bruta passa de 100%, o que dificulta a leitura. Por isso, decidiu-se calcular a frequência líquida: conta só quem está na idade prevista para a etapa <strong>e</strong> frequenta essa etapa, no ensino regular ou na EJA (no superior, a graduação e a pós-graduação). Na EJA do fundamental, só entra quem está do 6º ao 9º ano; quem estuda em cursos organizados de outra forma (por semestre, por exemplo) pode ficar de fora.</li>
+<li><strong>Frequência escolar líquida (anos finais do fundamental, ensino médio e ensino superior):</strong> é uma aproximação dos indicadores 2.3 e 2.4 do CMIG. Pela definição da ONU, esses indicadores são <strong>taxas brutas de matrícula</strong>: no numerador entram os matriculados na etapa de qualquer idade, e no denominador, a população na idade prevista para ela. Com o atraso escolar no Brasil, muitos alunos têm idade acima da prevista para a série que cursam, e a taxa bruta passa de 100%, o que dificulta a leitura. Por isso, decidiu-se calcular a frequência líquida: conta só quem está na idade prevista para a etapa <strong>e</strong> frequenta essa etapa, no ensino regular ou na EJA (no superior, a graduação e a pós-graduação). Na EJA do fundamental, só entra quem está do 6º ao 9º ano; quem estuda em cursos organizados de outra forma (por semestre, por exemplo) pode ficar de fora.</li>
 <li><strong>Conclusão dos anos iniciais do fundamental (2.5):</strong> a PNAD Contínua não pergunta diretamente se a pessoa concluiu os anos iniciais. O indicador usa os anos de estudo (<code>VD3005</code>), que o IBGE já padroniza para o ensino fundamental de 9 anos: quem tem 5 anos de estudo ou mais concluiu o 5º ano, o último dos anos iniciais.</li>
-<li><strong>Jovens que não estudam nem estão ocupados:</strong> a publicação <em>Estatísticas de Gênero</em> do IBGE também exclui quem estava em curso de qualificação profissional, informação que não está na base do curso. Por isso, o indicador calculado aqui inclui mais pessoas e tende a ficar acima do publicado.</li>
+<li><strong>Frequência escolar líquida ao longo do ano:</strong> a idade avança durante o ano, mas a série escolar só muda no início do ano letivo. Por isso, a frequência líquida tende a cair do 2º para o 4º trimestre e a subir de novo no 1º. Para comparar anos diferentes, use o mesmo trimestre; nos indicadores de educação, o IBGE usa o 2º trimestre.</li>
 </ul>
 </div>
 </div>
