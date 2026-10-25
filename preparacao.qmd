@@ -29,7 +29,8 @@ if (!requireNamespace('pacman', quietly = TRUE)) {
 }
 
 pacman::p_load(
-  dplyr, tidyr, stringr, ggplot2, plotly, readr, survey, srvyr, PNADcIBGE
+  dplyr, tidyr, stringr, ggplot2, plotly, readr, survey, srvyr, broom,
+  pbapply, jtools, PNADcIBGE
 )
 ```
 

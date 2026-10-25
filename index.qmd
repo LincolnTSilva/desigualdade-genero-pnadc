@@ -7,7 +7,7 @@ toc: false
 ::: {.destaque}
 Aprenda a construir, estimar e interpretar indicadores de desigualdade de gênero com os microdados da PNAD Contínua, em um fluxo reprodutível com R e Quarto.
 
-Ao final, você reproduz um relatório completo e acrescenta a ele um indicador criado por você.
+Ao final, você reproduz um relatório completo e acrescenta a ele indicadores criados por você.
 :::
 
 ## Como o curso funciona
@@ -65,7 +65,7 @@ Começamos pelo fim: na abertura, você vê o relatório pronto. Nos dois dias, 
 | **Local** | Laboratório de informática da universidade |
 | **Pré-requisito** | Alguma familiaridade com R |
 | **Programas** | R, RStudio e Quarto |
-| **Pacotes do R** | `dplyr`, `tidyr`, `stringr`, `readr`, `ggplot2`, `plotly`, `survey`, `srvyr` e `PNADcIBGE` |
+| **Pacotes do R** | `dplyr`, `tidyr`, `stringr`, `readr`, `ggplot2`, `plotly`, `survey`, `srvyr`, `broom`, `pbapply`, `jtools` e `PNADcIBGE` |
 | **Dados** | PNAD Contínua, microdados trimestrais (IBGE) |
 
 ::: {.callout-tip}

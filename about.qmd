@@ -7,7 +7,7 @@ toc: false
 
 **Lincoln Teixeira da Silva**
 
-Estatístico e economista. Trabalho na coordenação de índices de preços e sou professor da disciplina de prática de software na pós-graduação da ENCE há quase 10 anos. 
+Estatístico e economista. Trabalho na coordenação de índices de preços. Há quase 10 anos, sou professor da disciplina de prática de software na pós-graduação da ENCE.
 
 ## Sobre este site
 

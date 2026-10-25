@@ -15,7 +15,7 @@ title: "Materiais"
 
 [<i class="bi bi-download"></i> Baixar o relatório (.qmd)](downloads/relatorio.qmd){.btn .btn-primary}
 
-Depois de baixar, é possível gerar o relatório com os parâmetros pré-definidos abrindo o arquivo no RStudio e clicar em **Render**. Os dados são lidos do [Zenodo](https://doi.org/10.5281/zenodo.23552883) pelos links indicados nos parâmetros do cabeçalho, localmente ou usando o pacote `PNADcIBGE`.
+Depois de baixar, é possível gerar o relatório com os parâmetros predefinidos, abrindo o arquivo no RStudio e clicando em **Render**. Os dados são lidos da pasta `dados`, se ela existir, ou baixados do [Zenodo](https://doi.org/10.5281/zenodo.23552883) pelos links do cabeçalho. Com `gerar_base: true`, são gerados a partir dos microdados do IBGE, com o pacote `PNADcIBGE`.
 
 ## Ficha de indicador
 

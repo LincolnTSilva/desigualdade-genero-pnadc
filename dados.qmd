@@ -24,7 +24,7 @@ Os links já estão nos parâmetros `url_base` e `url_desenho` do relatório: se
 
 ## Como a base foi gerada
 
-O código que baixa os microdados do IBGE e gera a base está na seção [O projeto e os dados](relatorio.qmd#o-projeto-e-os-dados) do relatório. Ele só roda com o parâmetro `gerar_base: true` e serve para reproduzir o processo ou atualizar os dados para outro ano.
+O código que baixa os microdados do IBGE e gera a base está na seção [O projeto e os dados](relatorio.qmd#o-projeto-e-os-dados) do relatório. Ele só roda com o parâmetro `gerar_base: true` e serve para reproduzir o processo ou atualizar os dados para outro ano ou trimestre.
 
 ::: {.callout-warning}
 ## Por que não baixar os dados do IBGE durante a aula?

@@ -2,6 +2,13 @@
 title: "Dia 1: da pergunta aos dados"
 subtitle: "3 horas · da pergunta de pesquisa à primeira estimativa"
 code-tools: true
+code-links:
+  - text: "Baixar o Dia 1 (.qmd)"
+    icon: download
+    href: downloads/dia1.qmd
+  - text: "Baixar os dados (Zenodo)"
+    icon: database-down
+    href: https://doi.org/10.5281/zenodo.23552883
 params:
   ano: 2026
   trimestre: 2
@@ -17,22 +24,24 @@ params:
 <!-- Página gerada por _sincroniza-dias.py: o texto e o código fora dos marcadores "dia" vêm do relatorio.qmd. Edite no relatório e rode o script de novo. -->
 
 <!-- dia: inicio -->
+[![](imagens/baixar-dia1.svg){fig-alt="Baixar o Dia 1 (.qmd)"}](downloads/dia1.qmd)
+
 O primeiro dia termina com uma estimativa pontual e um gráfico, e deixa em aberto uma pergunta: quão confiável é esse número?
 
 ## Programa
 
 ::: {.programa}
 
-| Horário | Bloco | Conteúdo |
-|---|---|---|
-| 0:00–0:15 | Abertura | Apresentação, objetivos e demonstração do relatório final pronto |
-| 0:15–0:30 | 1. Enquadramento | CMIG e ODS 5 a partir da publicação do IBGE. Sexo e gênero na PNAD. O que a PNAD mede e o que exige outras fontes |
-| 0:30–1:00 | 2. Conhecendo a PNAD Contínua | Desenho amostral, microdados trimestrais, questionário, dicionário e domínios de estimação |
-| 1:00–1:10 | *Intervalo* | |
-| 1:10–1:40 | 3. O projeto e os dados | Projeto reprodutível, renderização do relatório com parâmetros e leitura da base |
-| 1:40–2:20 | 4. Recodificação e variáveis derivadas | Idade, cor ou raça, escolaridade, território, condição de atividade e variável de domicílio |
-| 2:20–2:50 | 5. Primeiras estimativas e primeiro gráfico | Estimativas com dplyr, com e sem peso, e gráfico com ggplot2 |
-| 2:50–3:00 | Fechamento | Síntese e ponte para o Dia 2 |
+| Bloco | Conteúdo |
+|---|---|
+| Abertura | Apresentação, objetivos e demonstração do relatório final pronto |
+| 1. Enquadramento | CMIG e ODS 5 a partir da publicação do IBGE. Sexo e gênero na PNAD. O que a PNAD mede e o que exige outras fontes |
+| 2. Conhecendo a PNAD Contínua | Desenho amostral, microdados trimestrais, questionário, dicionário e domínios de estimação |
+| *Intervalo* | |
+| 3. O projeto e os dados | Projeto reprodutível, renderização do relatório com parâmetros e leitura da base |
+| 4. Recodificação e variáveis derivadas | Idade, cor ou raça, escolaridade, território, condição de atividade e variável de domicílio |
+| 5. Primeiras estimativas e primeiro gráfico | Estimativas com dplyr, com e sem peso, e gráfico com ggplot2 |
+| Fechamento | Síntese e ponte para o Dia 2 |
 
 :::
 <!-- /dia -->
@@ -43,7 +52,7 @@ Um indicador de desigualdade de gênero compara a situação de mulheres e homen
 
 A referência internacional é o **Conjunto Mínimo de Indicadores de Gênero** (CMIG), aprovado pela Comissão de Estatística das Nações Unidas. Ele reúne 51 indicadores quantitativos e 11 qualitativos, organizados em cinco dimensões: estruturas econômicas e acesso a recursos; educação; saúde; vida pública e tomada de decisão; e direitos humanos de mulheres e meninas. Vários deles acompanham o **Objetivo de Desenvolvimento Sustentável 5** (igualdade de gênero), como a presença de mulheres em posições de decisão (meta 5.5).
 
-No Brasil, o IBGE publica os indicadores do CMIG na série *Estatísticas de Gênero: indicadores sociais das mulheres no Brasil*. Este relatório reproduz parte desses indicadores com os microdados da PNAD Contínua acrescentando medidas de precisão e desagregações por UF.
+No Brasil, o IBGE publica os indicadores do CMIG na série *Estatísticas de Gênero: indicadores sociais das mulheres no Brasil*. Este relatório reproduz parte desses indicadores com os microdados da PNAD Contínua, acrescentando medidas de precisão e diferentes desagregações, como urbano e rural, capital e região metropolitana, entre outras.
 
 
 <!-- dia: antes de "## 2. Conhecendo a PNAD Contínua" -->
@@ -86,6 +95,24 @@ ano       <- params$ano
 trimestre <- params$trimestre
 ufs       <- params$ufs
 
+# Número de recortes: o Brasil e as UFs escolhidas. A altura dos gráficos
+# cresce com ele (a opção fig.height dos blocos de gráfico usa as duas
+# funções abaixo). O RStudio calcula essa opção antes de rodar os blocos,
+# quando as funções ainda não existem: por isso o cabeçalho usa a altura
+# padrão nesse caso, com exists(). Com o padrão, Brasil e uma UF, a altura
+# é a mesma nos dois casos.
+n_recortes <- function() {
+  length(ufs) + 1
+}
+
+# Nos gráficos com um painel por recorte, o facet_wrap() distribui os
+# painéis em linhas e colunas; a altura cresce com o número de linhas.
+# wrap_dims() é a regra que o próprio facet_wrap() usa: devolve o número
+# de linhas e de colunas (por exemplo, 2 x 3 para 5 painéis)
+linhas_paineis <- function() {
+  ggplot2::wrap_dims(n_recortes())[1]
+}
+
 if (!trimestre %in% 1:4) {
   stop(
     'O trimestre deve ser 1, 2, 3 ou 4. Trimestre informado: ', trimestre, '.',
@@ -126,6 +153,9 @@ O relatório usa os pacotes abaixo. O `pacman` carrega todos de uma vez e instal
 | `plotly` | Transforma um gráfico do `ggplot2` em gráfico interativo com `ggplotly()`: passar o mouse mostra os valores, e dá para ampliar e esconder séries |
 | `survey` | Implementa a análise de amostras complexas: desenho amostral e calibração, distribuições por grupo (`svyby`), totais e razões entre eles (`svytotal`, `svycontrast`), testes (`svyttest`, `svychisq`) e regressão (`svyglm`) |
 | `srvyr` | Traz a sintaxe do `dplyr` para o `survey`: `group_by()` e `summarise()` com `survey_mean()` e `survey_ratio()`, que devolvem estimativa, intervalo de confiança e CV |
+| `broom` | Organiza os resultados de modelos e testes em tabelas, com `tidy()`: uma linha por coeficiente do `svyglm()`, com estimativa, erro-padrão e p-valor |
+| `pbapply` | Mostra uma barra de progresso nos laços: `pblapply()` funciona como o `lapply()`, útil nas estimativas demoradas, como os modelos de regressão |
+| `jtools` | Gráficos de modelos de regressão: `effect_plot()` mostra o valor previsto pelo modelo para cada categoria de uma variável, com o intervalo de confiança |
 | `PNADcIBGE` | Baixa e lê os microdados da PNAD Contínua direto do IBGE. Usado só na geração da base (`gerar_base: true`) |
 
 ```{r}
@@ -135,12 +165,15 @@ O relatório usa os pacotes abaixo. O `pacman` carrega todos de uma vez e instal
 # necessário
 options(repos = c(CRAN = 'https://cran.rstudio.com'))
 
-if(!require(pacman)) {
+# requireNamespace() só confere se o pacman está instalado, sem carregá-lo
+# nem imprimir mensagens; o p_load() abaixo chama o pacote pelo nome
+if (!requireNamespace('pacman', quietly = TRUE)) {
   install.packages('pacman')
 }
 
 pacman::p_load(
-  dplyr, tidyr, stringr, ggplot2, plotly, readr, survey, srvyr, PNADcIBGE
+  dplyr, tidyr, stringr, ggplot2, plotly, readr, survey, srvyr, broom,
+  pbapply, jtools, PNADcIBGE
 )
 ```
 
@@ -238,7 +271,7 @@ vars_curso <- c(
 
 ### Geração da base a partir dos microdados
 
-Executado só com `gerar_base: true`. Gera a base do curso em `.csv.gz`, publicada no [Zenodo](https://doi.org/10.5281/zenodo.23552883) e usada em todo o relatório. O desenho amostral é gerado e gravado no bloco 6, porque depende das variáveis criadas no bloco 4.
+O bloco abaixo só é executado com `gerar_base: true`. Ele gera a base do curso em `.csv.gz`, publicada no [Zenodo](https://doi.org/10.5281/zenodo.23552883) e usada em todo o relatório. O desenho amostral é gerado e gravado no bloco 6, porque depende das variáveis criadas no bloco 4.
 
 A geração tem cinco etapas, todas no mesmo bloco: o download dos microdados do trimestre, três checagens (das variáveis, da chave da pessoa e dos pesos) e a gravação da base. Qualquer problema numa checagem interrompe a geração antes da gravação. O `if` também protege quem roda o bloco pelo botão de play do RStudio, que não obedece à opção `eval`: com `gerar_base: false`, nada é baixado nem gravado.
 
@@ -456,7 +489,7 @@ cat(
 
 A base guarda os códigos de cada variável da PNAD Contínua. Aqui eles viram as categorias usadas nos indicadores, seguindo os agrupamentos da publicação *Estatísticas de Gênero* do IBGE. As variáveis originais continuam na base; as derivadas ganham nomes em português.
 
-As variáveis derivadas de dois tipos de resposta, sim ou não, são criadas como **dummies**:
+As variáveis derivadas que têm só duas respostas, sim ou não, são criadas como **dummies**:
 
 - **1** para quem tem a característica;
 - **0** para quem não tem;
@@ -573,7 +606,7 @@ pnadc <- pnadc |>
 
 ### Criança de até 6 anos no domicílio
 
-Uma informação de algumas pessoas (ter até 6 anos) passa a valer para todos os moradores do domicílio. É a base do indicador de nível de ocupação de pessoas de 25 a 54 anos com e sem crianças pequenas (CMIG 1.15). A dummy `crianca_ate_6` vale 1 para todos os moradores de domicílios com pelo menos uma criança de até 6 anos, e 0 para os demais.
+Aqui, uma característica de alguns moradores (ter até 6 anos) é levada a todos os moradores do domicílio. É a base do indicador de nível de ocupação de pessoas de 25 a 54 anos com e sem crianças pequenas (CMIG 1.15). A dummy `crianca_ate_6` vale 1 para todos os moradores de domicílios com pelo menos uma criança de até 6 anos, e 0 para os demais.
 
 ```{r}
 #| label: variavel-domicilio
@@ -882,14 +915,14 @@ window.addEventListener('load', function () {
 Este bloco calcula todos os indicadores da tabela acima com o `dplyr`, para o Brasil e para as UFs escolhidas nos parâmetros. O `dplyr` é rápido e basta para obter as **estimativas pontuais**, desde que o peso amostral **com calibração** seja usado. O que ele não faz é dizer o quão preciso é cada número: isso fica para o bloco 6.
 
 ::: {.callout-note}
-## Cálculo de estimativas usando o pacote `dplyr`
-Sempre se usará o peso **com calibração** para o cálculo das estimativas pontuais usando o pacote `dplyr`. Não se deve usar o peso **sem calibração**. Isso levará a estimativas pontuais erradas.
+## Estimativas com o `dplyr`
+Com o `dplyr`, as estimativas pontuais usam sempre o peso **com calibração** (`V1028`). Usar o peso **sem calibração** (`V1027`) com o pacote `dplyr` leva a estimativas pontuais erradas.
 :::
 
 <!-- dia: antes de "### Os estimadores" -->
 ::: {.callout-warning}
 ## Erro comum
-Calcular médias e proporções sem o peso amostral produz estimativas que não representam a população.
+Calcular médias e taxas sem o peso amostral produz estimativas que não representam a população.
 :::
 
 <!-- /dia -->
@@ -1035,7 +1068,7 @@ O primeiro indicador é a **taxa de participação na força de trabalho** (CMIG
 A PNAD Contínua é uma amostra, e as pessoas não têm todas a mesma chance de serem sorteadas. Cada pessoa entrevistada representa um número diferente de pessoas da população, e esse número é o seu **peso com calibração** (`V1028`). O bloco abaixo calcula a taxa de duas formas:
 
 - **sem peso**: a taxa entre as pessoas entrevistadas, como se cada uma valesse por uma;
-- **com peso**: infere o que a amostra representa para a população.
+- **com peso**: a taxa estimada para a população, em que cada pessoa vale pelo seu peso.
 
 ```{r}
 #| label: tbl-participacao-sem-com-peso
@@ -1078,7 +1111,7 @@ A coluna "Diferença" mostra o tamanho do erro de ignorar o peso. A estimativa c
 
 ### Todos os indicadores
 
-Todos os indicadores da tabela do bloco 4 são de dois tipos: uma **taxa ou razão** (quantas pessoas atendem a uma condição, entre as pessoas de uma população) ou uma **média** (o valor médio de uma variável numa população). Duas funções pequenas resolvem os dois casos, sempre com o peso:
+No bloco 5, os indicadores da tabela do bloco 4 se calculam de duas formas: como **taxa ou razão** (quantas pessoas atendem a uma condição, entre as pessoas de uma população) ou como **média** (o valor médio de uma variável numa população). Duas funções pequenas resolvem os dois casos, sempre com o peso:
 
 ```{r}
 #| label: funcoes-indicadores
@@ -1469,11 +1502,11 @@ indicadores_comparacao_longo |>
 ```
 
 ::: {.callout-warning}
-## O peso acerta a estimativa, mas não diz o quão precisa ela é.
-As tabelas trazem um número para cada indicador, sem erro-padrão, intervalo de confiança ou coeficiente de variação. Numa UF, a amostra é bem menor que a do Brasil, e alguns indicadores podem se apoiar em poucas pessoas entrevistadas. Antes de comparar dois números ou tirar conclusões, é preciso medir a precisão de cada estimador. Para isso, é preciso declarar o desenho amostral, que é o assunto do bloco 6.
+## O peso acerta a estimativa, mas não diz o quão precisa ela é
+As tabelas trazem um número para cada indicador, sem erro-padrão, intervalo de confiança ou coeficiente de variação. Numa UF, a amostra é bem menor que a do Brasil, e alguns indicadores podem se apoiar em poucas pessoas entrevistadas. Antes de comparar dois números ou tirar conclusões, é preciso medir a precisão de cada estimativa, e para isso é necessário declarar o desenho amostral, assunto do bloco 6.
 :::
 
-## Exercício: Construir um indicador para um novo domínio
+### Exercício: Construir um indicador para um novo domínio
 
 ```{r}
 #| label: Exercício - dplyr
@@ -1482,7 +1515,7 @@ As tabelas trazem um número para cada indicador, sem erro-padrão, intervalo de
 meu_indicador <- pnadc |> 
   # Domínio de estimação
   filter(UF %in% 31:35) |>
-  # No domínio de estimação, para quais agrupamento teremos os inicadores
+  # No domínio de estimação, para quais agrupamentos teremos os indicadores
   group_by(UF, sexo) |> 
   summarise(
     rendimento = media(
@@ -1517,7 +1550,7 @@ meu_indicador  |>
 ```
 
 
-### Os gráficos
+## Os gráficos
 
 Os gráficos partem das tabelas no formato longo. As cores seguem a publicação do IBGE, com os homens em roxo e as mulheres em laranja, e são guardadas num objeto para todos os gráficos do relatório.
 
@@ -1534,7 +1567,9 @@ legenda_topo <- list(
   orientation = 'h', x = 0, xanchor = 'right', y = 1, yanchor = 'bottom'
 )
 
-# A altura do gráfico vem da opção fig-height de cada bloco
+# A altura de cada gráfico vem da opção fig.height do bloco e cresce com o
+# número de recortes (funções n_recortes() e linhas_paineis(), do bloco
+# parametros)
 grafico_indicadores <- function(dados, rotulo_eixo) {
   grafico <- dados |>
     mutate(
@@ -1568,9 +1603,8 @@ grafico_indicadores <- function(dados, rotulo_eixo) {
 }
 ```
 
-```{r}
+```{r, fig.height = 9.5 * if (exists('linhas_paineis')) linhas_paineis() else 1}
 #| label: fig-trabalho
-#| fig-height: 9.5
 #| fig-cap: !expr "paste0('Indicadores de trabalho, por sexo. Fonte: IBGE, PNAD Contínua, ', params$trimestre, 'º trimestre de ', params$ano, '.')"
 
 indicadores_sexo_longo |>
@@ -1578,9 +1612,8 @@ indicadores_sexo_longo |>
   grafico_indicadores(rotulo_eixo = '%')
 ```
 
-```{r}
+```{r, fig.height = 8 * if (exists('linhas_paineis')) linhas_paineis() else 1}
 #| label: fig-educacao
-#| fig-height: 8
 #| fig-cap: !expr "paste0('Indicadores de educação, por sexo. Fonte: IBGE, PNAD Contínua, ', params$trimestre, 'º trimestre de ', params$ano, '.')"
 
 indicadores_sexo_longo |>
@@ -1588,9 +1621,8 @@ indicadores_sexo_longo |>
   grafico_indicadores(rotulo_eixo = '%')
 ```
 
-```{r}
+```{r, fig.height = 3 * if (exists('linhas_paineis')) linhas_paineis() else 1}
 #| label: fig-rendimento
-#| fig-height: 3
 #| fig-cap: !expr "paste0('Rendimento médio habitual de todos os trabalhos, por sexo. Fonte: IBGE, PNAD Contínua, ', params$trimestre, 'º trimestre de ', params$ano, '.')"
 
 indicadores_sexo_longo |>
@@ -1599,9 +1631,8 @@ indicadores_sexo_longo |>
 ```
 Os indicadores de comparação já resumem a diferença entre mulheres e homens num número só. Três deles medem a participação das mulheres num grupo de trabalhadores. O gráfico tem uma barra para cada recorte, e uma linha vertical marca os 50%, o ponto em que mulheres e homens estariam em igual número. A razão de rendimento fica só na tabela, porque a sua referência de igualdade é outra: 100%.
 
-```{r}
+```{r, fig.height = 4.2 * if (exists('n_recortes')) n_recortes() / 2 else 1}
 #| label: fig-comparacao
-#| fig-height: 4.2
 #| fig-cap: !expr "paste0('Participação das mulheres em grupos de trabalhadores. Fonte: IBGE, PNAD Contínua, ', params$trimestre, 'º trimestre de ', params$ano, '.')"
 
 cores_recorte <- c(
@@ -1650,12 +1681,12 @@ ggplotly(grafico_comparacao, tooltip = 'text') |>
 Para um relatório em PDF ou Word, basta fazer a função devolver o objeto `grafico` em vez de chamar o `ggplotly()`: o gráfico sai estático.
 :::
 
-## Exercício: Faça um gráfico do seu indicador
+### Exercício: Faça um gráfico do seu indicador
 
 ```{r}
 meu_indicador |> 
   mutate(
-    indicador = 'Rendimento médio habitual de todos os trabalho' |> 
+    indicador = 'Rendimento médio habitual de todos os trabalhos' |> 
       as.factor(), 
     recorte = nome_uf, 
     unidade = 'R$'

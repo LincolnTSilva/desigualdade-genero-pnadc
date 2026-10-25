@@ -32,7 +32,7 @@ website:
           - href: dia2.qmd
             text: "Dia 2: dos dados às conclusões"
           - href: relatorio.qmd
-            text: "Relatório final"
+            text: "Relatório"
       - href: materiais.qmd
         text: Materiais
       - href: dados.qmd
@@ -59,6 +59,3 @@ format:
     css: styles.css
     toc: true
     toc-title: "Nesta página"
-    # Pede aos buscadores que não indexem o site (retirar para aparecer no Google)
-    include-in-header:
-      text: '<meta name="robots" content="noindex, nofollow">'

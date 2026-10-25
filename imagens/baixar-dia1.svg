@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="224" height="30" viewBox="0 0 224 30" role="img" aria-label="Baixar o Dia 1 (.qmd)">
+  <title>Baixar o Dia 1 (.qmd)</title>
+  <clipPath id="borda">
+    <rect width="224" height="30" rx="5"/>
+  </clipPath>
+  <g clip-path="url(#borda)">
+    <rect width="44" height="30" fill="#3d3d45"/>
+    <rect x="44" width="180" height="30" fill="#5b4a9b"/>
+  </g>
+  <!-- Logo do R, simplificado: anel cinza inclinado e R azul -->
+  <ellipse cx="21" cy="13.5" rx="12" ry="7.8" fill="none" stroke="#c4c6cc" stroke-width="3.2" transform="rotate(-8 21 13.5)"/>
+  <text x="19.5" y="23" font-family="Verdana, Geneva, DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#2a6ebb">R</text>
+  <!-- Seta de download -->
+  <g fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M60 8 v10"/>
+    <path d="M55.5 14 l4.5 4.5 l4.5 -4.5"/>
+    <path d="M54 22 h12"/>
+  </g>
+  <text x="74" y="19.5" font-family="Verdana, Geneva, DejaVu Sans, sans-serif" font-size="12.5" fill="#ffffff" textLength="140" lengthAdjust="spacingAndGlyphs">Baixar o Dia 1 (.qmd)</text>
+</svg>

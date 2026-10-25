@@ -15,6 +15,9 @@ title: "Referências"
 - [PNADcIBGE](https://cran.r-project.org/package=PNADcIBGE): download e leitura dos microdados da PNAD Contínua.
 - [srvyr](https://cran.r-project.org/package=srvyr): análise de amostras complexas com sintaxe do `dplyr`.
 - [survey](https://cran.r-project.org/package=survey): testes e regressão com desenho amostral.
+- [broom](https://broom.tidymodels.org): resultados de modelos e testes em tabelas.
+- [pbapply](https://cran.r-project.org/package=pbapply): barra de progresso no `lapply()` e nas funções da família *apply*.
+- [jtools](https://jtools.jacob-long.com): gráficos e resumos de modelos de regressão.
 - [ggplot2](https://ggplot2.tidyverse.org): gráficos.
 - [plotly](https://plotly-r.com): gráficos interativos.
 - [Quarto](https://quarto.org): relatórios e sites reprodutíveis.
