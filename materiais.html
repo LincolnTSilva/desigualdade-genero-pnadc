@@ -73,7 +73,6 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Procurar"
   }
 }</script>
-<meta name="robots" content="noindex, nofollow">
 
 
 <link rel="stylesheet" href="styles.css">
@@ -119,7 +118,7 @@ ul.task-list li input[type="checkbox"] {
   </li>  
         <li>
     <a class="dropdown-item" href="./relatorio.html">
- <span class="dropdown-text">Relatório final</span></a>
+ <span class="dropdown-text">Relatório</span></a>
   </li>  
     </ul>
   </li>
@@ -217,7 +216,7 @@ ul.task-list li input[type="checkbox"] {
 <h2 class="anchored" data-anchor-id="relatório-final">Relatório final</h2>
 <p><a href="./relatorio.html">Relatório em Quarto</a>, parametrizado por ano, trimestre e uma lista de UFs, com os indicadores do curso.</p>
 <p><a href="downloads/relatorio.qmd" class="btn btn-primary"><i class="bi bi-download"></i> Baixar o relatório (.qmd)</a></p>
-<p>Depois de baixar, é possível gerar o relatório com os parâmetros pré-definidos abrindo o arquivo no RStudio e clicar em <strong>Render</strong>. Os dados são lidos do <a href="https://doi.org/10.5281/zenodo.23552883">Zenodo</a> pelos links indicados nos parâmetros do cabeçalho, localmente ou usando o pacote <code>PNADcIBGE</code>.</p>
+<p>Depois de baixar, é possível gerar o relatório com os parâmetros predefinidos, abrindo o arquivo no RStudio e clicando em <strong>Render</strong>. Os dados são lidos da pasta <code>dados</code>, se ela existir, ou baixados do <a href="https://doi.org/10.5281/zenodo.23552883">Zenodo</a> pelos links do cabeçalho. Com <code>gerar_base: true</code>, são gerados a partir dos microdados do IBGE, com o pacote <code>PNADcIBGE</code>.</p>
 </section>
 <section id="ficha-de-indicador" class="level2">
 <h2 class="anchored" data-anchor-id="ficha-de-indicador">Ficha de indicador</h2>
