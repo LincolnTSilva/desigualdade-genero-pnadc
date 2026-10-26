@@ -39,6 +39,10 @@ A referência internacional é o **Conjunto Mínimo de Indicadores de Gênero** 
 
 No Brasil, o IBGE publica os indicadores do CMIG na série *Estatísticas de Gênero: indicadores sociais das mulheres no Brasil*. Este relatório reproduz parte desses indicadores com os microdados da PNAD Contínua, acrescentando medidas de precisão e diferentes desagregações, como urbano e rural, capital e região metropolitana, entre outras.
 
+::: {.callout-important}
+## Sexo e gênero na PNAD Contínua
+A PNAD Contínua registra o sexo da pessoa em duas categorias. Os indicadores do curso comparam mulheres e homens e não permitem analisar identidade de gênero ou orientação sexual.
+:::
 
 ## 2. Conhecendo a PNAD Contínua
 
@@ -879,6 +883,11 @@ Este bloco calcula todos os indicadores da tabela acima com o `dplyr`, para o Br
 Com o `dplyr`, as estimativas pontuais usam sempre o peso **com calibração** (`V1028`). Usar o peso **sem calibração** (`V1027`) com o pacote `dplyr` leva a estimativas pontuais erradas.
 :::
 
+::: {.callout-warning}
+## Erro comum
+Calcular médias e taxas sem o peso amostral produz estimativas que não representam a população.
+:::
+
 ### Os estimadores
 
 Todos os indicadores do relatório são construídos a partir de **totais estimados**. A notação usada a seguir:
@@ -1510,7 +1519,9 @@ meu_indicador  |>
     )
   ) |>
   knitr::kable(
-    col.names = c('UF', 'Homem (R$)', 'Mulher (R$)', 'Diferença M/H (%)'),
+    # O cifrão vai como \\$: com dois $ no mesmo cabeçalho, o trecho entre
+    # eles vira fórmula matemática na página
+    col.names = c('UF', 'Homem (R\\$)', 'Mulher (R\\$)', 'Diferença M/H (%)'),
     align = c('l', 'r', 'r', 'r'),
     caption = paste0(
       'Rendimento médio habitual de todos os trabalhos das pessoas ocupadas, ',
