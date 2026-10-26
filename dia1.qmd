@@ -37,7 +37,6 @@ O primeiro dia termina com uma estimativa pontual e um gráfico, e deixa em aber
 | Abertura | Apresentação, objetivos e demonstração do relatório final pronto |
 | 1. Enquadramento | CMIG e ODS 5 a partir da publicação do IBGE. Sexo e gênero na PNAD. O que a PNAD mede e o que exige outras fontes |
 | 2. Conhecendo a PNAD Contínua | Desenho amostral, microdados trimestrais, questionário, dicionário e domínios de estimação |
-| *Intervalo* | |
 | 3. O projeto e os dados | Projeto reprodutível, parâmetros do relatório e leitura da base |
 | 4. Recodificação e variáveis derivadas | Idade, cor ou raça, escolaridade, território, condição de atividade e variável de domicílio |
 | 5. Primeiras estimativas e primeiro gráfico | Estimativas com dplyr, com e sem peso, e gráfico com ggplot2 |
@@ -475,6 +474,24 @@ pnadc <- read_csv(
 )
 confere_leitura(pnadc)
 
+# A base e o desenho precisam ser do ano e do trimestre dos parâmetros. Sem
+# os arquivos do período na pasta dados, o relatório baixa os do link do
+# Zenodo, que são de um trimestre fixo: sem esta conferência, ele rodaria
+# com os dados de outro período, sem nenhum aviso
+confere_periodo <- function(dados, origem) {
+  periodo <- distinct(dados, Ano, Trimestre)
+  if (nrow(periodo) != 1 || periodo$Ano != ano || periodo$Trimestre != trimestre) {
+    stop(
+      origem, ' é do ', periodo$Trimestre[1], 'º trimestre de ', periodo$Ano[1],
+      ', mas os parâmetros pedem o ', trimestre, 'º trimestre de ', ano, '. ',
+      'Para outro período, use gerar_base: true.',
+      call. = FALSE
+    )
+  }
+}
+
+confere_periodo(pnadc, 'A base lida')
+
 cat(
   'Base lida:', format(nrow(pnadc), big.mark = '.', decimal.mark = ','),
   'pessoas e', ncol(pnadc), 'variáveis.\n'
@@ -506,7 +523,7 @@ Com dummies, um total estimado é a soma dos pesos multiplicados pela dummy, com
 | `situacao` | `V1022` | Urbana; Rural |
 | `condicao_atividade` | `V2009`, `VD4001`, `VD4002` | Menos de 14 anos; Fora da força de trabalho; Ocupada; Desocupada |
 
-A `condicao_atividade` segue as subdivisões da população usadas pelo IBGE na PNAD Contínua. A população em idade de trabalhar (14 anos ou mais) se divide entre a força de trabalho, que reúne as pessoas ocupadas e as desocupadas, e as pessoas fora da força de trabalho. Entre as ocupadas, as subocupadas por insuficiência de horas trabalhavam habitualmente menos de 40 horas por semana, queriam trabalhar mais e estavam disponíveis.
+A `condicao_atividade` segue as subdivisões da população usadas pelo IBGE na PNAD Contínua. A população em idade de trabalhar (14 anos ou mais) se divide entre a força de trabalho, que reúne as pessoas ocupadas e as desocupadas, e as pessoas fora da força de trabalho.
 
 ```{mermaid}
 %%| fig-cap: "Subdivisões da população na PNAD Contínua. Adaptado de: Agência IBGE Notícias."
@@ -519,14 +536,12 @@ flowchart TB
   I --> N["Pessoas fora da força<br>de trabalho"]
   F --> O["Ocupadas"]
   F --> D["Desocupadas"]
-  O --> S["Ocupadas que trabalham<br>horas suficientes"]
-  O --> U["Subocupadas por<br>insuficiência de horas"]
 
   classDef topo fill:#3d3170,stroke:#3d3170,color:#ffffff
   classDef forca fill:#e4def4,stroke:#5b4a9b,color:#2e2550
   classDef fora fill:#f1f1f1,stroke:#9a9a9a,color:#444444
   class T,I topo
-  class F,O,D,S,U forca
+  class F,O,D forca
   class A,N fora
 ```
 
@@ -1428,6 +1443,18 @@ formata_valor <- function(valor, unidade) {
 }
 ```
 
+::: {.callout-note}
+## Dados organizados (*tidy*)
+O `tidyr` arruma as tabelas para a análise. Uma tabela organizada segue três regras: cada variável em uma coluna, cada observação em uma linha e cada valor em uma célula. Os dados raramente chegam assim, porque costumam ser organizados para outro uso, como o armazenamento. Como diz Hadley Wickham, autor do tidyverse, "conjuntos de dados organizados são todos iguais, mas os bagunçados são únicos à sua maneira".
+
+As duas funções principais:
+
+- `pivot_longer()`: transforma colunas em linhas, do formato largo para o longo;
+- `pivot_wider()`: transforma linhas em colunas, do formato longo para o largo.
+
+O `ggplot2` e o resto do tidyverse preferem o formato longo: aqui, uma linha para cada recorte, sexo e indicador.
+:::
+
 Para a tabela e para os gráficos, os resultados passam do formato largo, com uma coluna por indicador, para o formato longo, com uma linha por indicador.
 
 ```{r}
@@ -1483,6 +1510,14 @@ As tabelas trazem um número para cada indicador, sem erro-padrão, intervalo de
 :::
 
 ### Exercício: Construir um indicador para um novo domínio
+
+O exemplo abaixo calcula o **rendimento médio habitual de todos os trabalhos das pessoas ocupadas, por sexo, nas UFs do Sudeste** (Minas Gerais, Espírito Santo, Rio de Janeiro e São Paulo), um domínio que não está entre os recortes do relatório. O caminho é o mesmo dos indicadores acima:
+
+- o `filter()` define o domínio, as UFs do Sudeste;
+- o `group_by()` define os grupos em que o indicador é calculado, cada UF e cada sexo;
+- a função `media()`, com o peso com calibração, calcula o rendimento médio entre os ocupados.
+
+A tabela final passa os resultados para o formato largo, com uma coluna para cada sexo, e acrescenta a diferença percentual entre o rendimento das mulheres e o dos homens. Para o exercício, troque o indicador, o domínio ou os grupos.
 
 ```{r}
 #| label: Exercício - dplyr
