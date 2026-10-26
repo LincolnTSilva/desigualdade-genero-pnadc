@@ -18,6 +18,10 @@ title: "Referências"
 - [broom](https://broom.tidymodels.org): resultados de modelos e testes em tabelas.
 - [pbapply](https://cran.r-project.org/package=pbapply): barra de progresso no `lapply()` e nas funções da família *apply*.
 - [jtools](https://jtools.jacob-long.com): gráficos e resumos de modelos de regressão.
+- [dplyr](https://dplyr.tidyverse.org): manipulação de dados (filtrar, criar variáveis, agrupar e resumir).
+- [tidyr](https://tidyr.tidyverse.org): reorganização de tabelas entre os formatos longo e largo.
+- [stringr](https://stringr.tidyverse.org): tratamento de textos.
+- [readr](https://readr.tidyverse.org): leitura e gravação da base em `.csv.gz`.
 - [ggplot2](https://ggplot2.tidyverse.org): gráficos.
 - [plotly](https://plotly-r.com): gráficos interativos.
 - [Quarto](https://quarto.org): relatórios e sites reprodutíveis.
