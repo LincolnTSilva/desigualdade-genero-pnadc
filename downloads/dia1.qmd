@@ -36,7 +36,7 @@ O primeiro dia termina com uma estimativa pontual e um gráfico, e deixa em aber
 | 1. Enquadramento | CMIG e ODS 5 a partir da publicação do IBGE. Sexo e gênero na PNAD. O que a PNAD mede e o que exige outras fontes |
 | 2. Conhecendo a PNAD Contínua | Desenho amostral, microdados trimestrais, questionário, dicionário e domínios de estimação |
 | *Intervalo* | |
-| 3. O projeto e os dados | Projeto reprodutível, renderização do relatório com parâmetros e leitura da base |
+| 3. O projeto e os dados | Projeto reprodutível, parâmetros do relatório e leitura da base |
 | 4. Recodificação e variáveis derivadas | Idade, cor ou raça, escolaridade, território, condição de atividade e variável de domicílio |
 | 5. Primeiras estimativas e primeiro gráfico | Estimativas com dplyr, com e sem peso, e gráfico com ggplot2 |
 | Fechamento | Síntese e ponte para o Dia 2 |
@@ -1535,8 +1535,27 @@ meu_indicador  |>
   ) |> 
   # Incluir a diferença percentual do rendimento entre Homens e Mulheres
   mutate(
-    dif_percentual = ((Mulher/Homem - 1) * 100) |> 
+    dif_percentual = ((Mulher/Homem - 1) * 100) |>
       round(2)
+  ) |>
+  # Formatar os números (ponto no milhar, vírgula no decimal) e exibir a tabela
+  mutate(
+    across(
+      c(Homem, Mulher),
+      \(valor) scales::number(valor, accuracy = 1, big.mark = '.', decimal.mark = ',')
+    ),
+    dif_percentual = scales::number(
+      dif_percentual, accuracy = 0.01, decimal.mark = ','
+    )
+  ) |>
+  knitr::kable(
+    col.names = c('UF', 'Homem (R$)', 'Mulher (R$)', 'Diferença M/H (%)'),
+    align = c('l', 'r', 'r', 'r'),
+    caption = paste0(
+      'Rendimento médio habitual de todos os trabalhos das pessoas ocupadas, ',
+      'por sexo, UFs do Sudeste. Fonte: IBGE, PNAD Contínua, ',
+      params$trimestre, 'º trimestre de ', params$ano, '.'
+    )
   )
 ```
 

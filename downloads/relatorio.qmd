@@ -1496,8 +1496,27 @@ meu_indicador  |>
   ) |> 
   # Incluir a diferença percentual do rendimento entre Homens e Mulheres
   mutate(
-    dif_percentual = ((Mulher/Homem - 1) * 100) |> 
+    dif_percentual = ((Mulher/Homem - 1) * 100) |>
       round(2)
+  ) |>
+  # Formatar os números (ponto no milhar, vírgula no decimal) e exibir a tabela
+  mutate(
+    across(
+      c(Homem, Mulher),
+      \(valor) scales::number(valor, accuracy = 1, big.mark = '.', decimal.mark = ',')
+    ),
+    dif_percentual = scales::number(
+      dif_percentual, accuracy = 0.01, decimal.mark = ','
+    )
+  ) |>
+  knitr::kable(
+    col.names = c('UF', 'Homem (R$)', 'Mulher (R$)', 'Diferença M/H (%)'),
+    align = c('l', 'r', 'r', 'r'),
+    caption = paste0(
+      'Rendimento médio habitual de todos os trabalhos das pessoas ocupadas, ',
+      'por sexo, UFs do Sudeste. Fonte: IBGE, PNAD Contínua, ',
+      params$trimestre, 'º trimestre de ', params$ano, '.'
+    )
   )
 ```
 
@@ -2714,7 +2733,7 @@ for (nome in levels(totais_recortes$recorte)) {
 }
 ```
 
-Os totais de cada célula, sozinhos, não mostram com clareza a relação entre sexo e setor, porque o número de ocupados é diferente entre os sexos. Comparar a distribuição de cada sexo pelos setores ajuda a ver se as duas variáveis parecem independentes por conta do desbalanceamento entre as variáveis.
+Os totais de cada célula, sozinhos, não mostram com clareza a relação entre sexo e setor, porque o número de ocupados é diferente entre os sexos. Comparar a distribuição de cada sexo pelos setores, sem o efeito dessa diferença de tamanho, ajuda a ver se as duas variáveis parecem independentes.
 
 A segunda tabela acrescenta os totais marginais: a linha Total soma os dois sexos, e a coluna Total, os três setores. Cada célula traz o total em mil pessoas e, entre parênteses, a taxa dentro da linha: para cada sexo, a parte dos ocupados em cada setor. Se sexo e setor fossem independentes, as taxas das linhas Homem e Mulher seriam iguais, a menos do erro amostral.
 
@@ -2840,29 +2859,36 @@ em que $y_i$ é o rendimento mensal habitual de todos os trabalhos (`VD4019`) da
 
 O rendimento entra no modelo em logaritmo. Assim, cada coeficiente $b$ se lê como uma diferença percentual: o rendimento de quem tem a característica é $(e^{b} - 1) \times 100$ por cento maior que o da categoria de referência, ou menor, se o resultado for negativo.
 
-O `svyglm()` ajusta a regressão levando em conta o desenho: os coeficientes usam os pesos, e os erros-padrão consideram estratos, UPAs e calibração. Os três modelos testados são:
+O `svyglm()` ajusta a regressão levando em conta o desenho: os coeficientes usam os pesos, e os erros-padrão consideram estratos, UPAs e calibração. Os três modelos ajustados são:
 
 1. só o sexo;
 2. sexo e cor ou raça;
 3. sexo, cor ou raça e nível de instrução.
 
-O modelo de regressão a seguir é ajustado só para a primeira UF escolhida nos parâmetros, `r ufs_escolhidas$nome_uf[1]`, um dos recortes do teste t.
+O modelo de regressão é ajustado para uma UF só. No padrão, é a primeira UF escolhida nos parâmetros, um dos recortes do teste t; para outra UF, basta trocar o código no bloco abaixo.
+
+```{r}
+#| label: uf-regressao
+
+# A UF da regressão: a primeira escolhida nos parâmetros (o Rio de Janeiro,
+# no padrão). Para outra UF, troque o código, por exemplo
+# uf_regressao <- 35 (São Paulo); o nome vem da tabela_ufs
+uf_regressao <- ufs_escolhidas$UF[1]
+nome_uf_regressao <- tabela_ufs$nome_uf[tabela_ufs$UF == uf_regressao]
+```
+
+A regressão a seguir é ajustada para a UF `r nome_uf_regressao`.
 
 ```{r}
 #| label: regressao
 #| cache: true
-#| cache.extra: !expr list(ano, trimestre, ufs, file.mtime(arquivo_desenho))
-#| cache.vars: !expr c('coeficientes', 'coeficientes2', 'nome_uf_regressao', 'efeitos')
+#| cache.extra: !expr list(ano, trimestre, ufs, uf_regressao, file.mtime(arquivo_desenho))
+#| cache.vars: !expr c('coeficientes', 'coeficientes2')
 #| warning: false
 #| results: asis
 
 # warning: false esconde um aviso inofensivo: o svyglm() informa que
 # ignorou as pessoas com peso zero deixadas pelo filter()
-
-# A regressão é feita para a primeira UF escolhida nos parâmetros (o Rio de
-# Janeiro, no padrão)
-uf_regressao <- ufs_escolhidas$UF[1]
-nome_uf_regressao <- ufs_escolhidas$nome_uf[1]
 
 # Ocupados com rendimento positivo: o logaritmo de zero não existe
 desenho_rendimento <- desenho |>
@@ -2947,28 +2973,11 @@ for (nome in names(modelos)) {
     sep = ''
   )
 }
-
-# Gráficos de efeitos de cada variável do modelo 3, guardados aqui porque os
-# modelos não vão para o cache. centered = 'none' fixa as outras variáveis nas
-# categorias de referência; o padrão do jtools calcula médias ponderadas e dá
-# erro com as pessoas de peso zero deixadas pelo filter()
-efeitos <- list(
-  sexo = effect_plot(
-    modelos[['Modelo 3']], pred = sexo, interval = TRUE, centered = 'none'
-  ),
-  cor_raca = effect_plot(
-    modelos[['Modelo 3']], pred = cor_raca, interval = TRUE, centered = 'none'
-  ),
-  escolaridade = effect_plot(
-    modelos[['Modelo 3']], pred = escolaridade, interval = TRUE,
-    centered = 'none'
-  )
-)
 ```
 
 No modelo 1, a diferença compara o rendimento de mulheres e homens sem levar mais nada em conta. Nos modelos 2 e 3, **outras características** são incluídas no modelo. Se a diferença muda pouco de um modelo para outro, ela não se explica por essas características.
 
-O modelo 1, só com o sexo, responde à mesma pergunta do teste t da seção anterior: uma regressão com uma única dummy compara as médias dos dois grupos, e o próprio `svyttest()` é calculado assim, com um `svyglm()`. A diferença está na escala e na população. O teste t compara as médias do rendimento em reais, entre todos os ocupados; o modelo 1 compara as médias do logaritmo do rendimento, entre os ocupados com rendimento maior que zero, e por isso o coeficiente se lê como uma diferença percentual. Os números não são iguais, mas os dois mostram a distância entre o rendimento de mulheres e homens.
+O modelo 1, só com o sexo, responde à mesma pergunta do teste t, mais acima: uma regressão com uma única dummy compara as médias dos dois grupos, e o próprio `svyttest()` é calculado assim, com um `svyglm()`. A diferença está na escala e na população. O teste t compara as médias do rendimento em reais, entre todos os ocupados; o modelo 1 compara as médias do logaritmo do rendimento, entre os ocupados com rendimento maior que zero, e por isso o coeficiente se lê como uma diferença percentual. Os números não são iguais, mas os dois mostram a distância entre o rendimento de mulheres e homens.
 
 O gráfico de coeficientes mostra o modelo 3 completo. Cada ponto é a diferença percentual de rendimento em relação à categoria de referência da variável (homem; branca; sem instrução e fundamental incompleto), mantidas as demais constantes. Quando o intervalo cruza a linha do zero, a diferença não é estatisticamente significativa.
 
@@ -3013,38 +3022,100 @@ ggplotly(grafico_coeficientes, tooltip = 'text') |>
   config(displayModeBar = FALSE)
 ```
 
-Os gráficos de efeitos mostram o logaritmo do rendimento previsto pelo modelo 3 para cada categoria de uma variável, com o intervalo de confiança de 95%, com as outras variáveis fixadas nas categorias de referência (homem; branca; sem instrução e fundamental incompleto).
+Os gráficos de efeitos mostram o rendimento previsto pelo modelo 3, em reais, para cada categoria de uma variável, com o intervalo de confiança de 95%, mantendo as outras variáveis nas categorias de referência (homem; branca; sem instrução e fundamental incompleto).
+
+```{r}
+#| label: efeitos
+#| cache: true
+#| cache.extra: !expr list(ano, trimestre, ufs, uf_regressao, file.mtime(arquivo_desenho))
+#| dependson: 'regressao'
+#| cache.vars: 'efeitos'
+
+# Gráficos de efeitos de cada variável do modelo 3. Usam os modelos do bloco
+# regressao, que não vão para o cache (carregam o desenho inteiro): se este
+# bloco mudar e o regressao vier do cache, os modelos não existem, e é
+# preciso apagar a pasta relatorio_cache. centered = 'none' fixa as outras
+# variáveis nas categorias de referência; o padrão do jtools calcula médias
+# ponderadas e dá erro com as pessoas de peso zero deixadas pelo filter()
+efeitos <- list(
+  sexo = effect_plot(
+    modelos[['Modelo 3']], pred = sexo, interval = TRUE, centered = 'none'
+  ),
+  cor_raca = effect_plot(
+    modelos[['Modelo 3']], pred = cor_raca, interval = TRUE, centered = 'none'
+  ),
+  escolaridade = effect_plot(
+    modelos[['Modelo 3']], pred = escolaridade, interval = TRUE,
+    centered = 'none'
+  )
+)
+```
 
 ```{r}
 #| label: fig-efeitos
-#| layout-ncol: 3
-#| fig-width: 4
-#| fig-height: 4.5
-#| fig-cap: !expr "paste0('Logaritmo do rendimento previsto pelo modelo 3, com intervalo de confiança de 95%, pessoas ocupadas, ', nome_uf_regressao, '. Fonte: IBGE, PNAD Contínua, ', params$trimestre, 'º trimestre de ', params$ano, '.')"
-#| fig-subcap:
-#|   - Sexo
-#|   - Cor ou raça
-#|   - Nível de instrução
+#| fig-height: 5
+#| fig-cap: !expr "paste0('Rendimento previsto pelo modelo 3 (média geométrica, R$), com intervalo de confiança de 95%, por sexo, cor ou raça e nível de instrução, pessoas ocupadas, ', nome_uf_regressao, '. Fonte: IBGE, PNAD Contínua, ', params$trimestre, 'º trimestre de ', params$ano, '.')"
 
-# Um gráfico por variável, lado a lado (layout-ncol: 3). O eixo vertical é o
-# mesmo nos três, para comparar o tamanho dos efeitos; os nomes longos das
-# categorias são quebrados em linhas
+# Um gráfico por variável, desenhado a partir das previsões do effect_plot()
+# (guardadas em efeito$data) no mesmo estilo do gráfico de coeficientes, e
+# os três juntados lado a lado num só gráfico interativo pelo subplot() do
+# plotly. O eixo vertical é o mesmo nos três, para comparar o tamanho dos
+# efeitos.
+# O modelo prevê o log do rendimento; o exp() volta para reais, na previsão
+# e nos limites do IC. O exp() da média do log é a média geométrica, e não a
+# aritmética: fica abaixo do rendimento médio das tabelas do bloco 5 e do
+# teste t
 limites <- efeitos |>
   lapply(\(efeito) range(efeito$data$ymin, efeito$data$ymax)) |>
   unlist() |>
-  range()
+  range() |>
+  exp()
 
-for (efeito in efeitos) {
-  print(
-    efeito +
-      scale_x_discrete(labels = \(rotulo) str_wrap(rotulo, 12)) +
-      coord_cartesian(ylim = limites) +
-      labs(x = NULL, y = 'Logaritmo do rendimento (previsto)')
-  )
-}
+reais <- scales::label_number(prefix = 'R$ ', big.mark = '.', decimal.mark = ',')
+
+titulos <- c(
+  sexo = 'Sexo', cor_raca = 'Cor ou raça', escolaridade = 'Nível de instrução'
+)
+
+graficos_efeitos <- lapply(names(efeitos), \(nome) {
+  previsoes <- efeitos[[nome]]$data |>
+    mutate(
+      categoria = .data[[nome]],
+      across(c(log_rendimento, ymin, ymax), exp),
+      # Texto que aparece ao passar o mouse
+      texto = paste0(
+        categoria, ': ', reais(log_rendimento),
+        '<br>IC 95%: ', reais(ymin), ' a ', reais(ymax)
+      )
+    )
+
+  grafico <- previsoes |>
+    ggplot(aes(
+      x = categoria, y = log_rendimento, ymin = ymin, ymax = ymax,
+      text = texto
+    )) +
+    geom_errorbar(width = 0.2, colour = cores_sexo[['Homem']]) +
+    geom_point(size = 2.5, colour = cores_sexo[['Homem']]) +
+    scale_x_discrete(labels = \(rotulo) str_wrap(rotulo, 10)) +
+    scale_y_continuous(labels = reais) +
+    coord_cartesian(ylim = limites) +
+    labs(x = titulos[[nome]], y = 'Rendimento previsto (média geométrica, R$)') +
+    theme_minimal() +
+    theme(panel.grid.major.x = element_blank())
+
+  ggplotly(grafico, tooltip = 'text')
+})
+
+# A instrução tem mais categorias e ganha mais largura
+subplot(
+  graficos_efeitos,
+  nrows = 1, widths = c(0.2, 0.3, 0.5), shareY = TRUE, titleX = TRUE,
+  margin = 0.02
+) |>
+  config(displayModeBar = FALSE)
 ```
 
-A regressão é feita para a primeira UF escolhida nos parâmetros. Para o Brasil, basta tirar o `filter(UF == uf_regressao)` do primeiro passo; com a amostra do Brasil, os intervalos ficam mais estreitos.
+A regressão é feita para a UF do bloco `uf-regressao`. Para o Brasil, basta tirar o `filter(UF == uf_regressao)` do primeiro passo; com a amostra do Brasil, os intervalos ficam mais estreitos.
 
 ## 9. Seu indicador
 
