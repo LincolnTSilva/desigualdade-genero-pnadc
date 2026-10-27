@@ -24,14 +24,22 @@ No console do R:
 # necessário
 options(repos = c(CRAN = 'https://cran.rstudio.com'))
 
-if (!requireNamespace('pacman', quietly = TRUE)) {
-  install.packages('pacman')
-}
-
-pacman::p_load(
-  dplyr, tidyr, stringr, ggplot2, plotly, readr, survey, srvyr, broom,
-  pbapply, jtools, PNADcIBGE
+pacotes <- c(
+  'dplyr', 'tidyr', 'stringr', 'ggplot2', 'plotly', 'readr', 'survey',
+  'srvyr', 'broom', 'pbapply', 'jtools', 'PNADcIBGE'
 )
+
+# Para cada pacote, o require() tenta carregar e devolve FALSE se ele não
+# estiver instalado; nesse caso, o install.packages() instala e o library()
+# carrega. warn.conflicts = FALSE esconde as mensagens de funções com o
+# mesmo nome em pacotes diferentes (por exemplo, filter() no dplyr e no stats)
+for (pacote in pacotes) {
+  if (!require(pacote, character.only = TRUE, quietly = TRUE,
+               warn.conflicts = FALSE)) {
+    install.packages(pacote)
+    library(pacote, character.only = TRUE, warn.conflicts = FALSE)
+  }
+}
 ```
 
 ## 3. Baixe o relatório e a base

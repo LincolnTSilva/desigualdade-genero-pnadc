@@ -2,6 +2,13 @@
 title: "Dia 2: dos dados às conclusões"
 subtitle: "3 horas · da incerteza das estimativas ao relatório atualizado"
 code-tools: true
+code-links:
+  - text: "Baixar o relatório completo (.qmd)"
+    icon: download
+    href: downloads/relatorio.qmd
+  - text: "Baixar os dados (Zenodo)"
+    icon: database-down
+    href: https://doi.org/10.5281/zenodo.23552883
 params:
   ano: 2026
   trimestre: 2
@@ -17,6 +24,10 @@ params:
 <!-- Página gerada por _sincroniza-dias.py: o texto e o código fora dos marcadores "dia" vêm do relatorio.qmd. Edite no relatório e rode o script de novo. -->
 
 <!-- dia: inicio -->
+[![](imagens/baixar-relatorio.svg){fig-alt="Baixar o relatório completo (.qmd)"}](downloads/relatorio.qmd)
+
+O Dia 2 corresponde às seções 6 a 9 do relatório completo, que roda antes as seções 1 a 5. Renderizar o relatório inteiro leva cerca de 13 minutos.
+
 O segundo dia acrescenta a incerteza às estimativas e reproduz todo o relatório, permitindo alterar o ano, o trimestre e as UFs.
 
 ## Programa
@@ -138,6 +149,12 @@ if (params$gerar_base) {
     PNADcIBGE::pnadc_design()
 
   saveRDS(desenho_calibrado, arquivo_desenho)
+
+} else {
+  message(
+    'gerar_base: false. Nenhum desenho novo foi gerado: ',
+    'o relatório usa o arquivo já existente.'
+  )
 }
 ```
 
@@ -149,8 +166,6 @@ O arquivo do desenho é gravado depois do bloco 4 e leva junto as variáveis der
 ```{r}
 #| label: desenho
 
-# Opções que o pnadc_design() liga ao criar o desenho. Elas valem só para
-# a sessão do R e não vão junto no .rds: por isso, são ligadas de novo aqui.
 # Estrato com uma só UPA (no total ou num recorte): a variância é calculada
 # em torno da média geral, em vez de dar erro
 options(survey.lonely.psu = 'adjust')
@@ -274,7 +289,7 @@ estima_participacao <- function(desenho) {
 
 participacao_desenho <- bind_rows(
   desenho |>
-    estima_participacao() |>
+    estima_participacao() |> 
     mutate(recorte = 'Brasil'),
   desenho |>
     # UFs fora da lista viram um só domínio (NA), descartado no inner_join
@@ -291,6 +306,7 @@ participacao_desenho <- bind_rows(
   ) |>
   select(recorte, sexo, starts_with('taxa'))
 ```
+
 
 ```{r}
 #| label: tbl-participacao-desenho
@@ -311,6 +327,42 @@ participacao_desenho |>
     format.args = list(decimal.mark = ','),
     col.names = c(
       'Recorte', 'Sexo', 'Taxa com dplyr (%)', 'Taxa com srvyr (%)',
+      'EP (p.p.)', 'IC 95%: inferior', 'IC 95%: superior', 'CV (%)'
+    )
+  )
+```
+
+```{r}
+participacao_desenho_cor_raca <- bind_rows(
+  desenho |>
+    group_by(cor_raca) |> 
+    estima_participacao() |>
+    mutate(recorte = 'Brasil'),
+  desenho |>
+    # UFs fora da lista viram um só domínio (NA), descartado no inner_join
+    mutate(UF = if_else(UF %in% ufs_escolhidas$UF, UF, NA)) |>
+    group_by(UF, cor_raca) |>
+    estima_participacao() |>
+    inner_join(ufs_escolhidas, by = 'UF') |>
+    mutate(recorte = nome_uf)
+) |>
+  mutate(
+    recorte = factor(recorte, levels = levels(pnadc_recortes$recorte)),
+    # Taxa, erro-padrão, limites do IC e CV passam para %
+    across(starts_with('taxa'), \(valor) valor * 100)
+  ) |>
+  select(recorte, sexo, cor_raca, starts_with('taxa'))
+
+participacao_desenho_cor_raca |>
+  arrange(recorte, cor_raca, sexo) |>
+  select(
+    recorte, cor_raca, sexo, taxa, taxa_se, taxa_low, taxa_upp, taxa_cv
+  ) |>
+  knitr::kable(
+    digits = c(0, 0, 1, 1, 2, 1, 1, 2),
+    format.args = list(decimal.mark = ','),
+    col.names = c(
+      'Recorte', 'Cor ou raça', 'Sexo', 'Taxa com srvyr (%)',
       'EP (p.p.)', 'IC 95%: inferior', 'IC 95%: superior', 'CV (%)'
     )
   )
@@ -403,7 +455,7 @@ Cada estimativa no desenho leva de alguns segundos a algumas dezenas de segundos
 
 ### Funções para os recortes
 
-O bloco 6 estimou a taxa de participação para o Brasil e, separadamente, para as UFs escolhidas, tratando as UFs como domínios. A função `por_recorte()` guarda esse procedimento para qualquer estimativa. Ela recebe o desenho e uma função que faz a estimativa, e devolve uma tabela com a coluna `recorte`, como a do bloco 5.
+O bloco 6 estimou a taxa de participação para o Brasil e, separadamente, para as UFs escolhidas, tratando as UFs como domínios. A função `por_recorte()` guarda esse procedimento para qualquer estimativa. Ela recebe o desenho e uma função que faz a estimativa, e devolve uma tabela com a coluna `recorte`, como a do bloco 5. Variáveis de agrupamento passadas depois da função (por exemplo, `cor_raca`) entram no agrupamento do Brasil e de cada UF.
 
 As funções `taxa_sexo()` e `media_sexo()` fazem a estimativa por sexo. Os nomes das colunas são sempre os mesmos (`estimativa`, `estimativa_se`, `estimativa_low`, `estimativa_upp` e `estimativa_cv`), o que permite juntar indicadores diferentes na mesma tabela e no mesmo gráfico.
 
@@ -412,10 +464,12 @@ As funções `taxa_sexo()` e `media_sexo()` fazem a estimativa por sexo. Os nome
 
 # Estimativa para o Brasil e para as UFs escolhidas, como no bloco 6.
 # 'estima' é uma função que recebe o desenho e devolve as estimativas.
-# Com brasil = FALSE, só as UFs.
-por_recorte <- function(desenho, estima, brasil = TRUE) {
+# As variáveis passadas em ... (por exemplo, cor_raca) entram no
+# agrupamento, como no group_by(). Com brasil = FALSE, só as UFs.
+por_recorte <- function(desenho, estima, ..., brasil = TRUE) {
   estimativa_brasil <- if (brasil) {
     desenho |>
+      group_by(...) |>
       estima() |>
       mutate(recorte = 'Brasil')
   }
@@ -423,7 +477,7 @@ por_recorte <- function(desenho, estima, brasil = TRUE) {
   ufs <- desenho |>
     # UFs fora da lista viram um só domínio (NA), descartado no inner_join
     mutate(UF = if_else(UF %in% ufs_escolhidas$UF, UF, NA)) |>
-    group_by(UF) |>
+    group_by(UF, ...) |>
     estima() |>
     inner_join(ufs_escolhidas, by = 'UF') |>
     mutate(recorte = nome_uf)
@@ -578,6 +632,15 @@ taxas_trabalho <- bind_rows(
 ## O aviso "strata have only one PSU in this subset"
 O relatório esconde este aviso, porque ele se repetiria em muitos blocos (bloco `esconde-aviso-upa`, logo depois da leitura do desenho). Ele indica que, no recorte estimado, algum estrato ficou com uma só UPA. Com uma UPA, não há como medir a variação dentro do estrato, e o cálculo do erro-padrão daria erro. As opções ligadas no bloco 6 (`survey.lonely.psu = 'adjust'` e `survey.adjust.domain.lonely = TRUE`) tratam esses casos: a variação do estrato é medida em torno da média geral. O aviso só informa que isso aconteceu; a estimativa continua válida.
 :::
+
+As mesmas taxas podem ser calculadas em outros agrupamentos, além do sexo. Basta passar a variável à `por_recorte()`, depois da função de estimativa: o exemplo abaixo calcula a taxa de desocupação por cor ou raça e sexo, no Brasil e em cada UF escolhida. O código fica fora dos blocos executáveis (não roda na renderização nem no play do RStudio), porque cada grupo a mais aumenta o tempo de cálculo, e grupos pequenos, como "Outras" na cor ou raça, podem ter CV alto nas UFs.
+
+```r
+desocupacao_cor_raca <- desenho |>
+  filter(forca_trabalho == 1) |>
+  por_recorte(\(d) taxa_sexo(d, desocupada), cor_raca) |>
+  mutate(indicador = 'Taxa de desocupação (1.10)', unidade = '%')
+```
 
 ```{r}
 #| label: tbl-taxas-trabalho
@@ -786,7 +849,11 @@ O IC é calculado na escala logit, pela função `ic_logit()`, a mesma conta do 
 #| cache: true
 #| cache.extra: !expr list(ano, trimestre, ufs, file.mtime(arquivo_desenho))
 
-# Distribuição por nível de instrução, por sexo, num desenho já recortado
+# Distribuição por nível de instrução, por sexo, num desenho já recortado.
+# Aqui o svyby() do survey, e não o srvyr: com o srvyr, cada combinação de
+# sexo e nível de instrução seria estimada separadamente, e o cálculo leva
+# cerca de quatro vezes mais. O svymean() de uma variável categórica estima
+# as quatro categorias de uma vez, e o svyby() repete isso para cada sexo.
 distribuicao_instrucao <- function(desenho) {
   distribuicao <- svyby(
     ~escolaridade, ~sexo,
@@ -1399,6 +1466,9 @@ grafico_coeficientes <-  coeficientes |>
   # um ponto
   geom_errorbar(orientation = 'y', width = 0.2, colour = cores_sexo[['Homem']]) +
   geom_point(size = 2.5, colour = cores_sexo[['Homem']]) +
+  # Rótulos do eixo de 50 em 50, a partir de -50, que fica sempre no gráfico
+  scale_x_continuous(breaks = \(limites) seq(-50, limites[2], by = 50)) +
+  expand_limits(x = -50) +
   labs(x = 'Diferença de rendimento (%)', y = NULL) +
   theme_minimal() +
   theme(panel.grid.major.y = element_blank())
@@ -1604,5 +1674,5 @@ A diferença entre as taxas de mulheres e homens no Brasil é de `r uma_casa(tes
 <!-- dia: fim -->
 ## Encerramento
 
-O mesmo relatório, renderizado para outro trimestre ou outra UF, trocando apenas os parâmetros `ano`, `trimestre` e `ufs`.
+O mesmo relatório pode ser renderizado para outro ano, trimestre e UF. A alteração do ano e do trimestre implica baixar os microdados do IBGE e refazer o desenho amostral (`gerar_base: true`), o que leva cerca de 10 minutos antes mesmo do cálculo dos indicadores. Por isso, aqui trocamos só a UF: basta mudar o parâmetro `ufs` (por exemplo, `ufs: ["SP"]` ou `ufs: ["RJ", "SP"]`), porque a base e o desenho já baixados têm todas as UFs. O relatório inteiro leva cerca de 13 minutos para renderizar. Se a base lida não for do ano e do trimestre pedidos nos parâmetros, o relatório para com uma mensagem explicando o que fazer.
 <!-- /dia -->

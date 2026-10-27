@@ -12,7 +12,7 @@ Ao final, você reproduz um relatório completo e acrescenta a ele indicadores c
 
 ## Como o curso funciona
 
-Começamos pelo fim: na abertura, você vê o relatório pronto. Nos dois dias, desmontamos e remontamos esse relatório, etapa por etapa. No encerramento, o mesmo relatório é gerado para outro trimestre ou outra UF, trocando apenas os parâmetros.
+Começamos pelo fim: na abertura, você vê o relatório pronto. Nos dois dias, desmontamos e remontamos esse relatório, etapa por etapa. No encerramento, o mesmo relatório é gerado para outra UF, trocando apenas um parâmetro.
 
 ::: {.grid}
 
